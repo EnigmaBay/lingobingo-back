@@ -1,0 +1,16 @@
+### root path verifies server is alive
+
+http://localhost:3001/ HTTP/1.1
+
+### nonexistant paths will return message
+
+http://localhost:3001/path/does/not/exist
+
+### api v1 root path
+
+http://localhost:3001/api/v1/ HTTP/1.1
+
+### login path will eventually require Auth header with Bearer token
+
+http://localhost:3001/api/v1/login HTTP/1.1
+
