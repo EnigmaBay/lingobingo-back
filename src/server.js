@@ -3,6 +3,8 @@ const app = express();
 require("dotenv").config();
 const PORT = process.env.PORT || 3002;
 
+app.use(express.json());
+
 app.get("/", (req, res) => {
   res.status(200).json({ message: "ehlo werld!" });
 });
@@ -10,7 +12,7 @@ app.get("/", (req, res) => {
 const apiv1 = require('./api/v1/apiv1');
 app.use('/api/v1', apiv1);
 
-app.get("*", (req, res) =>{
+app.all("*", (req, res) =>{
   res.status(404).json({ message: 'Nothing here, padawan.' });
 });
 

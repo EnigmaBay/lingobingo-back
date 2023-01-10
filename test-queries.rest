@@ -1,16 +1,45 @@
 ### root path verifies server is alive
 
-http://localhost:3001/ HTTP/1.1
+GET http://localhost:3001/ HTTP/1.1
 
 ### nonexistant paths will return message
 
-http://localhost:3001/path/does/not/exist
+GET http://localhost:3001/path/does/not/exist HTTP/1.1
+
+### nonexisting paths return message
+
+POST http://localhost:3001/unknown/path HTTP/1.1
+
+{
+  'message': 'Please let me in!'
+}
+
+### nonexisting paths return message
+
+PATCH http://localhost:3001/unknown/path HTTP/1.1
+
+{
+  'message': 'Please let me in!'
+}
+
+### nonexisting paths return message
+
+DELETE http://localhost:3001/unknown/path HTTP/1.1
+
+{
+  'message': 'Please let me in!'
+}
 
 ### api v1 root path
 
-http://localhost:3001/api/v1/ HTTP/1.1
+GET http://localhost:3001/api/v1/ HTTP/1.1
 
 ### login path will eventually require Auth header with Bearer token
 
-http://localhost:3001/api/v1/login HTTP/1.1
+GET http://localhost:3001/api/v1/login HTTP/1.1
 
+### test get from a live database
+
+GET http://localhost:3001/api/v1/data HTTP/1.1
+
+### 
