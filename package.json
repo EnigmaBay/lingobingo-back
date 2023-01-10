@@ -1,0 +1,32 @@
+{
+  "name": "lingobingo-back",
+  "version": "1.0.0",
+  "description": "API Server for LingoBingo JS React App",
+  "main": "src/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/server.js",
+    "devStart": "nodemon src/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EnigmaBay/lingobingo-back.git"
+  },
+  "keywords": [
+    "node",
+    "express"
+  ],
+  "author": "Nojronatron and Schaferyan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/EnigmaBay/lingobingo-back/issues"
+  },
+  "homepage": "https://github.com/EnigmaBay/lingobingo-back#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.3",
+    "nodemon": "^2.0.20"
+  }
+}
