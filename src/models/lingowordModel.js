@@ -1,6 +1,6 @@
-const { mongoose, Schema } = require("mongoose");
+const mongoose = require("mongoose");
 
-const lingowordSchema = new Schema({
+const lingowordSchema = new mongoose.Schema({
   // mongoose sets its own _id
   category: {
     type: String,

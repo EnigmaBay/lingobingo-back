@@ -23,6 +23,6 @@ const bingoboardSchema = new mongoose.Schema({
   },
 });
 
-const Bingoboard = mongoose.model("Bingoboard", bingoboardSchema);
+const BingoBoard = mongoose.model("Bingoboard", bingoboardSchema);
 
 module.exports = BingoBoard;
