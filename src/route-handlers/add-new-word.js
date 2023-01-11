@@ -4,9 +4,9 @@ const checkString = require('../utils/validate-inputs');
 async function addWord(ownerId, categoryId, lingoWord) {
   const owner = checkString(ownerId);
   const category = checkString(categoryId);
-  const word = checkString(word);
+  const word = checkString(lingoWord);
 
-  if (!owner || !category || !lingoWord) {
+  if (!owner || !category || !word) {
     return;
   }
 
@@ -26,12 +26,13 @@ async function addWord(ownerId, categoryId, lingoWord) {
         category: category,
         owner: owner
       });
+
       return addedItem.word;
     } else {
       return findResult[0].word;
     }
   } catch (error) {
-    return error;
+    return error.message;
   }
 }
 
