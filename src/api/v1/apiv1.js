@@ -18,7 +18,24 @@ router.get("/authorize", (req, res) => {
   res.status(501).json({ message: "Unable to authorize at this time." });
 });
 
-router.post("/data", async (req, res) => {
+router.get("/words/:category", async (req, res) => {
+  console.log("received GET /words/:category", req.params);
+  const category  = req.params.category;
+  console.log("category is", category);
+  const uuid = process.env.TEST_UUID;
+  console.log("uuid is", uuid);
+  const getWords = require("../../route-handlers/get-words");
+  if (!uuid || !category) {
+    console.log("uuid and category were undefined", uuid, category);
+    res.status(400).json({ message: "missing category in params." });
+  } else {
+    const result = getWords(uuid, category);
+    console.log("awaited getWords() returned", result);
+    res.status(200).json({ message: result });
+  }
+});
+
+router.post("/word", async (req, res) => {
   const { category, word } = req.body;
   const uuid = process.env.TEST_UUID;
 
@@ -29,6 +46,7 @@ router.post("/data", async (req, res) => {
     const result = await addWord(uuid, category, word);
     res.status(200).json({ message: result });
   }
+  // res.status(501).json({ message: "api/v1/ not implemented." });
 });
 
 module.exports = router;
