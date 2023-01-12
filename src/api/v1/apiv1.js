@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
+// const authorize = require('../../authorization/authorize');
 
 mongoose.connect(process.env.MONGO_CONN_STRING);
 const db = mongoose.connection;
@@ -18,20 +19,31 @@ router.get("/authorize", (req, res) => {
   res.status(501).json({ message: "Unable to authorize at this time." });
 });
 
-router.get("/words/:category", async (req, res) => {
-  console.log("received GET /words/:category", req.params);
-  const category  = req.params.category;
-  console.log("category is", category);
+router.get("/api/v1/protected", (req, res) => {
+  console.log("query at /api/v1/proteted");
+  res.status(200).json({ message: "protected path!" });
+});
+
+router.get("/words/:category", async (req, res, next) => {
+  const category = req.params.category;
+  // todo: when cookies implemented replace this with cookie validator
   const uuid = process.env.TEST_UUID;
-  console.log("uuid is", uuid);
   const getWords = require("../../route-handlers/get-words");
+
   if (!uuid || !category) {
     console.log("uuid and category were undefined", uuid, category);
     res.status(400).json({ message: "missing category in params." });
   } else {
-    const result = getWords(uuid, category);
-    console.log("awaited getWords() returned", result);
-    res.status(200).json({ message: result });
+    // todo: when cache enabled also send req.path to getWords func
+    getWords(uuid, category)
+      .then((wordList) => {
+        res.status(200).send({ wordList });
+      })
+      .catch((error) => {
+        // todo: fix this catch to not leak code details
+        console.error(error);
+        res.status(500).json({ error });
+      });
   }
 });
 

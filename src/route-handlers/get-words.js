@@ -1,26 +1,32 @@
 const LingoWord = require("../models/lingowordModel");
 const checkString = require("../utils/validate-inputs");
 
-async function getWords(uuid, lingoCategory) {
+function getWords(uuid, lingoCategory) {
   const owner = checkString(uuid);
   const category = checkString(lingoCategory);
-  
+
   const findResult = LingoWord.find({
     category: category,
-    owner: uuid,
+    owner: owner,
     deleted: false,
-  }).exec();
+  })
+    .exec()
+    .then((response) => parseResponse(response));
 
+  return findResult;
+}
+
+function parseResponse(dbResponse) {
   const wordList = [];
 
   try {
-    findResult.forEach((element) => {
-      wordList.push(element["word"]);
+    dbResponse.forEach((item) => {
+      wordList.push(item["word"]);
     });
 
-    return wordList;
+    return Promise.resolve(wordList);
   } catch (error) {
-    return error.message;
+    return Promise.reject(error);
   }
 }
 
