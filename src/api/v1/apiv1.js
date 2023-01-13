@@ -1,7 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
-// const authorize = require('../../authorization/authorize');
+const authorize = require("../../authorization/authorize");
+const { generateUuid, store } = require("../../utils/presenter-utils");
+const cookieValidator = require("../../authorization/cookie-validator");
 
 mongoose.connect(process.env.MONGO_CONN_STRING);
 const db = mongoose.connection;
@@ -15,13 +17,31 @@ router.get("/", (req, res) => {
   res.status(501).json({ message: "api/v1/ not implemented." });
 });
 
-router.get("/authorize", (req, res) => {
-  res.status(501).json({ message: "Unable to authorize at this time." });
-});
+router.get("/authorize", authorize, async (req, res, next) => {
+  if (!req.user) {
+    res.status(400).json({ message: "Authorization failed." });
+  } else {
+    const presenterUuid = await generateUuid(
+      req.user.given_name,
+      req.user.email,
+      req.user.locale
+    );
 
-router.get("/api/v1/protected", (req, res) => {
-  console.log("query at /api/v1/proteted");
-  res.status(200).json({ message: "protected path!" });
+    store(presenterUuid)
+      .then((validUuid) => {
+        res.locals.presenterUuid = validUuid;
+        cookieValidator(req, res, next);
+
+        if (res.locals.cookieResult) {
+          res.json({ message: "Authorization granted." });
+        } else {
+          res.json({ message: "Unauthorized." });
+        }
+      })
+      .catch((error) =>
+        res.status(500).json({ mesesage: "Unable to store presenter uuid." })
+      )
+  }
 });
 
 router.get("/words/:category", async (req, res, next) => {
