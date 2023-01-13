@@ -1,42 +1,59 @@
-const Presenter = require('../models/presenterModel');
-const { Buffer } = require('node:buffer');
+const Presenter = require("../models/presenterModel");
+const { Buffer } = require("node:buffer");
 
 // get presenter based on authorization token information
-async function getId(oidc) {
+async function generateUuid(given_name, email, locale) {
   try {
-    const { given_name, email, locale } = oidc;
     if (!given_name || !email || !locale) {
       return 400;
     } else {
       const concatInput = given_name + email + locale;
       const buf = Buffer.from(concatInput);
-      return buf.toString('hex');
+      console.log("generateUuid returning buf", buf.toString("hex"));
+      return buf.toString("hex");
     }
   } catch (error) {
+    console.log("generateUuid catch block triggered, returning 500");
     return 500;
   }
 }
 
 // set presenter stores the presenters uuid into the db
-async function storeId(encodedId) {
-  try {
-    const findResult = await Presenter.find({ uuid: encodedId }).exec();
+function store(presenterUuid) {
+  console.log("store called with presenterUuid:", presenterUuid);
+  const result = Presenter.find({
+    uuid: presenterUuid,
+    deleted: false,
+  })
+    .exec()
+    .then((dbFindResult) => {
+      if (dbFindResult[0]) {
+        return Promise.resolve(dbFindResult[0].uuid);
+      } else {
+        Presenter.create({
+          uuid: presenterUuid,
+        }).then((createResult) => {
+          if (createResult) {
+            console.log('presenter store Presenter.create: if createResult is:', createResult);
+            return Promise.resolve(createResult.uuid);
+          } else {
+            console.log('presenter store Presenter.create: if createResult failed, sending Promise.reject message.');
+            return Promise.reject("Failed to create.");
+          }
+        });
+      }
+    })
+    .catch((error) => console.log(error));
 
-    if (!findResult[0]) {
-      const addedItem = await Presenter.create({ uuid: encodedId });
-    }
-
-    return encodedId;
-  } catch (error) {
-    console.log('Failed to add presenter id to db. ', error);
-  }
+  return result;
 }
 
 // add gameboard to presenter. Returns gameboard uuid if sucessfull, -1 if not.
 async function addGameboard(presenterId, gameboardId) {
+  // todo: test and refine this function
   try {
     const existingPresenter = await Presenter.find({
-      uuid: presenterId
+      uuid: presenterId,
     }).exec();
 
     if (!existingPresenter[0]) {
@@ -48,12 +65,12 @@ async function addGameboard(presenterId, gameboardId) {
       return gameboardId;
     }
   } catch (error) {
-    console.log('adding gameboard to presenter profile failed. ', error);
+    console.log("adding gameboard to presenter profile failed. ", error);
   }
 }
 
 module.exports = {
-  getId,
-  storeId,
-  addGameboard
+  generateUuid,
+  store,
+  addGameboard,
 };
