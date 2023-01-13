@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 3002;
 
 app.use(express.json());
 app.use(cookieParser());
+app.disable('x-powered-by');
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "ehlo werld!" });
