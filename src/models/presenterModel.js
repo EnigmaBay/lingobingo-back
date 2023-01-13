@@ -2,10 +2,11 @@ const mongoose = require("mongoose");
 
 const presenterSchema = new mongoose.Schema({
   uuid: {
-    type: String,
+    type: String, // calculated from name + email + locale
+    required: [true, "Not authenticated"],
     min: 12,
     max: 100,
-  }, // calculated from name + email + locale
+  },
   bingoboards: {
     type: [String],
   },
@@ -17,7 +18,7 @@ const presenterSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  deleted: {
+  isDeleted: {
     type: Boolean,
     default: false, // set to true when item is deleted
   },

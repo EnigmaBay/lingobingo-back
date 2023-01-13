@@ -17,7 +17,7 @@ const bingoboardSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  deleted: {
+  isDeleted: {
     type: Boolean,
     default: false, // set to true when item is deleted
   },
