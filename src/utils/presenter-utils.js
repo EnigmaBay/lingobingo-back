@@ -9,18 +9,16 @@ async function generateUuid(given_name, email, locale) {
     } else {
       const concatInput = given_name + email + locale;
       const buf = Buffer.from(concatInput);
-      console.log("generateUuid returning buf", buf.toString("hex"));
       return buf.toString("hex");
     }
   } catch (error) {
-    console.log("generateUuid catch block triggered, returning 500");
+    console.error("generateUuid catch block triggered, returning 500");
     return 500;
   }
 }
 
 // set presenter stores the presenters uuid into the db
 function store(presenterUuid) {
-  console.log("store called with presenterUuid:", presenterUuid);
   const result = Presenter.find({
     uuid: presenterUuid,
     deleted: false,
@@ -28,25 +26,21 @@ function store(presenterUuid) {
     .exec()
     .then((dbFindResult) => {
       if (dbFindResult[0]) {
-        console.log('store dbFindResult has content.');
-        console.log('store dbFindResult uuid is', dbFindResult[0].uuid);
         return Promise.resolve(dbFindResult[0].uuid);
       } else {
-        console.log('store dbFindResult had no content, adding Presenter to db.')
         Presenter.create({
           uuid: presenterUuid,
         }).then((createResult) => {
           if (createResult) {
-            console.log('presenter store Presenter.create: if createResult is:', createResult);
             return Promise.resolve(createResult.uuid);
           } else {
-            console.log('presenter store Presenter.create: if createResult failed, sending Promise.reject message.');
+            console.error('presenter create failed, rejecting request.');
             return Promise.reject("Failed to create.");
           }
         });
       }
     })
-    .catch((error) => console.log(error));
+    .catch((error) => console.error('presenter store failed. error:', error));
 
   return result;
 }
@@ -68,7 +62,7 @@ async function addGameboard(presenterId, gameboardId) {
       return gameboardId;
     }
   } catch (error) {
-    console.log("adding gameboard to presenter profile failed. ", error);
+    console.error("adding gameboard to presenter profile failed. ", error);
   }
 }
 

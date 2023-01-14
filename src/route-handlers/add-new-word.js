@@ -1,5 +1,5 @@
-const LingoWord = require('../models/lingowordModel');
-const checkString = require('../utils/validate-inputs');
+const LingoWord = require("../models/lingowordModel");
+const checkString = require("../utils/validate-inputs");
 
 async function addWord(ownerId, categoryId, lingoWord) {
   const owner = checkString(ownerId);
@@ -15,7 +15,7 @@ async function addWord(ownerId, categoryId, lingoWord) {
       word: word,
       category: category,
       owner: owner,
-      deleted: false
+      deleted: false,
     }).exec();
 
     let addedItem;
@@ -24,7 +24,7 @@ async function addWord(ownerId, categoryId, lingoWord) {
       const addedItem = await LingoWord.create({
         word: word,
         category: category,
-        owner: owner
+        owner: owner,
       });
 
       return addedItem.word;

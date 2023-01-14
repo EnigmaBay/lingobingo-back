@@ -30,7 +30,6 @@ router.get("/authorize", authorize, async (req, res, next) => {
 
     store(presenterUuid)
       .then((validUuid) => {
-        console.log("get authorize store.then validUuid", validUuid);
         res.locals.presenterUuid = validUuid;
         cookieSetter(req, res, next);
 
@@ -48,16 +47,11 @@ router.get("/authorize", authorize, async (req, res, next) => {
 
 router.get("/words/:category", cookieValidator, async (req, res, next) => {
   const category = req.params.category;
-  console.log('category is:', category);
-  // done: when cookies implemented replace this with cookie validator
-  // const uuid = process.env.TEST_UUID;
   const getWords = require("../../route-handlers/get-words");
 
   if (!category) {
-    console.log("category missing or undefined", category);
     res.status(400).json({ message: "missing category in params." });
   } else {
-    console.log('calling getWords with userUuid, category', req.cookies['useruuid'], category);
     // todo: when cache enabled also send req.path to getWords func
     getWords(req.cookies["useruuid"], category)
       .then((wordList) => {
@@ -65,15 +59,18 @@ router.get("/words/:category", cookieValidator, async (req, res, next) => {
       })
       .catch((error) => {
         // todo: fix this catch to not leak code details
-        console.error(error);
-        res.status(500).json({ error });
+        console.log(
+          "get words/:category unable to query using supplied category",
+          category,
+          error
+        );
+        res.status(500).json({ message: "Unable to query category." });
       });
   }
 });
 
-router.post("/word", cookieValidator, async (req, res) => {
+router.post("/word", cookieValidator, async (req, res, next) => {
   const { category, word } = req.body;
-  // const uuid = process.env.TEST_UUID;
 
   if (!category || !word) {
     res.status(400).json({ message: "missing body." });
@@ -82,7 +79,6 @@ router.post("/word", cookieValidator, async (req, res) => {
     const result = await addWord(req.cookies["useruuid"], category, word);
     res.status(200).json({ message: result });
   }
-  // res.status(501).json({ message: "api/v1/ not implemented." });
 });
 
 module.exports = router;
