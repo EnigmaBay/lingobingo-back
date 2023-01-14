@@ -3,6 +3,7 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const authorize = require("../../authorization/authorize");
 const { generateUuid, store } = require("../../utils/presenter-utils");
+const cookieSetter = require("../../authorization/cookie-setter");
 const cookieValidator = require("../../authorization/cookie-validator");
 
 mongoose.connect(process.env.MONGO_CONN_STRING);
@@ -29,8 +30,9 @@ router.get("/authorize", authorize, async (req, res, next) => {
 
     store(presenterUuid)
       .then((validUuid) => {
+        console.log("get authorize store.then validUuid", validUuid);
         res.locals.presenterUuid = validUuid;
-        cookieValidator(req, res, next);
+        cookieSetter(req, res, next);
 
         if (res.locals.cookieResult) {
           res.json({ message: "Authorization granted." });
@@ -40,22 +42,24 @@ router.get("/authorize", authorize, async (req, res, next) => {
       })
       .catch((error) =>
         res.status(500).json({ mesesage: "Unable to store presenter uuid." })
-      )
+      );
   }
 });
 
-router.get("/words/:category", async (req, res, next) => {
+router.get("/words/:category", cookieValidator, async (req, res, next) => {
   const category = req.params.category;
-  // todo: when cookies implemented replace this with cookie validator
-  const uuid = process.env.TEST_UUID;
+  console.log('category is:', category);
+  // done: when cookies implemented replace this with cookie validator
+  // const uuid = process.env.TEST_UUID;
   const getWords = require("../../route-handlers/get-words");
 
-  if (!uuid || !category) {
-    console.log("uuid and category were undefined", uuid, category);
+  if (!category) {
+    console.log("category missing or undefined", category);
     res.status(400).json({ message: "missing category in params." });
   } else {
+    console.log('calling getWords with userUuid, category', req.cookies['useruuid'], category);
     // todo: when cache enabled also send req.path to getWords func
-    getWords(uuid, category)
+    getWords(req.cookies["useruuid"], category)
       .then((wordList) => {
         res.status(200).send({ wordList });
       })
@@ -67,15 +71,15 @@ router.get("/words/:category", async (req, res, next) => {
   }
 });
 
-router.post("/word", async (req, res) => {
+router.post("/word", cookieValidator, async (req, res) => {
   const { category, word } = req.body;
-  const uuid = process.env.TEST_UUID;
+  // const uuid = process.env.TEST_UUID;
 
-  if (!category || !word || !uuid) {
+  if (!category || !word) {
     res.status(400).json({ message: "missing body." });
   } else {
     const addWord = require("../../route-handlers/add-new-word");
-    const result = await addWord(uuid, category, word);
+    const result = await addWord(req.cookies["useruuid"], category, word);
     res.status(200).json({ message: result });
   }
   // res.status(501).json({ message: "api/v1/ not implemented." });

@@ -1,33 +1,87 @@
-function cookieValidator(req, res, next) {
-  res.locals.cookieResult = false;
-  res.status(500);
+const Presenter = require("../models/presenterModel");
 
-  // test if presenterUuid is set and if not then find or create Presenter failed so do not set new cookies
-  try {
-    if (res.locals.presenterUuid !== undefined) {
-      const userUuid = res.locals.presenterUuid;
-      const uuidMatches = [...userUuid.matchAll(/([g-zG-Z])/g)];
+function validateCookies(req, res, next) {
+  console.log('entered validateCookies middleware.');
+  console.log('validateCookies useruuid, username:', req.cookies['useruuid'], req.cookies['username']);
 
-      // hex values do not include alpha characters g through z
-      if (uuidMatches.length === 0) {
+  const cookiesDefined = validateInputs(
+    req.cookies["useruuid"],
+    req.cookies["username"]
+  );
 
-        if (userUuid.split("").length > 29) {
-          res.cookie("useruuid", userUuid, {
-            maxAge: process.env.MAX_COOKIE_AGE,
-          });
-          res.cookie("username", req.user.given_name, {
-            maxAge: process.env.MAX_COOKIE_AGE,
-          });
-          res.status(200);
-          res.locals.cookieResult = true;
-        }
-      }
-    }
-  } catch (error) {
-    console.log("cookieValidate catch block error:", error);
-    res.status(500);
-    res.locals.cookieResult = false;
+  if (!cookiesDefined) {
+    console.log('cookiesDefined was false!');
+    res.status(401);
+    res.json({ message: "Reauthentication needed." });
   }
+
+  const presenterIsValid = validatePresenter(req.cookies["useruuid"])
+    .then((resolution) => resolution === req.cookies["useruuid"])
+    .catch((value) => false);
+
+  if (!presenterIsValid) {
+    res.status(401);
+    res.json({ message: "Registation required." });
+  }
+
+  function setCookies() {
+    res.cookie("useruuid", req.cookies["useruuid"], {
+      maxAge: process.env.MAX_COOKIE_AGE,
+    });
+    console.log('cookies-validator setCookies setting user given name:', req.cookies['username']);
+    res.cookie("username", req.cookies['username'], {
+      maxAge: process.env.MAX_COOKIE_AGE,
+    });
+  }
+
+  setCookies();
+  next();
 }
 
-module.exports = cookieValidator;
+function validateInputs(useruuid, username) {
+  console.log('cookie-validator validateInputs received', useruuid, username);
+  if (useruuid === undefined) {
+    return false;
+  }
+  const uuidMatches = [...useruuid.matchAll(/([g-zG-Z])/g)];
+
+  if (uuidMatches.length > 0) {
+    return false;
+  }
+
+  if (useruuid.split("").length < 30) {
+    return false;
+  }
+
+  if (username === undefined) {
+    return false;
+  }
+
+  const usernameMatches = [...username.matchAll(/([a-zA-Z])/g)];
+
+  if (usernameMatches.length < 1) {
+    return false;
+  }
+
+  return true;
+}
+
+function validatePresenter(useruuid) {
+  const result = Presenter.find({
+    uuid: useruuid,
+    deleted: false,
+  })
+    .exec()
+    .then((dbFindResult) => {
+      if (dbFindResult[0]) {
+        return Promise.resolve(dbFindResult[0].uuid);
+      } else {
+        return Promise.reject("Presenter not found.");
+      }
+    })
+    .catch((error) => console.log(error));
+
+  return result;
+}
+
+module.exports = validateCookies;
