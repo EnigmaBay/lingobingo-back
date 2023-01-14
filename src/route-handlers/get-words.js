@@ -2,6 +2,7 @@ const LingoWord = require("../models/lingowordModel");
 const checkString = require("../utils/validate-inputs");
 
 function getWords(uuid, lingoCategory) {
+  console.log('entered getWords with uuid, lingoCategory:', uuid, lingoCategory);
   const owner = checkString(uuid);
   const category = checkString(lingoCategory);
 

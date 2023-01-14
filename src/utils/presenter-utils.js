@@ -28,8 +28,11 @@ function store(presenterUuid) {
     .exec()
     .then((dbFindResult) => {
       if (dbFindResult[0]) {
+        console.log('store dbFindResult has content.');
+        console.log('store dbFindResult uuid is', dbFindResult[0].uuid);
         return Promise.resolve(dbFindResult[0].uuid);
       } else {
+        console.log('store dbFindResult had no content, adding Presenter to db.')
         Presenter.create({
           uuid: presenterUuid,
         }).then((createResult) => {
