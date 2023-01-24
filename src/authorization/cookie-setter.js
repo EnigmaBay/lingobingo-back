@@ -13,9 +13,11 @@ function cookieSetter(req, res, next) {
         if (userUuid.split("").length > 29) {
           res.cookie("useruuid", userUuid, {
             maxAge: process.env.MAX_COOKIE_AGE,
+            sameSite: 'Strict'
           });
           res.cookie("username", req.user.given_name, {
             maxAge: process.env.MAX_COOKIE_AGE,
+            sameSite: 'Strict'
           });
           res.status(200);
           res.locals.cookieResult = true;
