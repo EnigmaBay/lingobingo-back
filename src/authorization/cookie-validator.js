@@ -1,48 +1,54 @@
 const Presenter = require("../models/presenterModel");
 
-function validateCookies(req, res, next) {
+async function validateCookies(req, res, next) {
+  res.locals.cookieResult = "Unauthorized";
+
   const cookiesDefined = validateInputs(
     req.cookies["useruuid"],
     req.cookies["username"]
   );
 
-  if (!cookiesDefined) {
-    res.status(401);
-    res.json({ message: "Reauthentication needed." });
-  } else {
-    validatePresenter(req.cookies["useruuid"])
-      .then((resolution) => resolution === req.cookies["useruuid"])
-      .then((presenter) => {
-        res.cookie("useruuid", req.cookies["useruuid"], {
+  console.log("cookie-validator cookiesDefined", cookiesDefined);
+
+  try {
+    if (cookiesDefined) {
+      const username = req.cookies["username"];
+      const presenter = await validatePresenter(req.cookies["useruuid"]);
+
+      if (presenter.uuid === req.cookies["useruuid"]) {
+        const presenterUuid = presenter.uuid;
+
+        res.cookie("username", username, {
           maxAge: process.env.MAX_COOKIE_AGE,
+          sameSite: "Strict",
         });
-        res.cookie("username", req.cookies["username"], {
+        console.log("cookie-validator username cookie set!");
+
+        res.cookie("useruuid", presenterUuid, {
           maxAge: process.env.MAX_COOKIE_AGE,
+          sameSite: "Strict",
         });
-        console.log("Cookies set for validated presenter:", presenter);
-      })
-      .catch(res.status(401).json({ message: "Registration required." }));
+        console.log("cookie-validator uuid cookie set!");
 
-    // if (!presenterIsValid) {
-    //   res.status(401);
-    //   res.json({ message: "Registation required." });
-    // }
-
-    // function setCookies() {
-    //   res.cookie("useruuid", req.cookies["useruuid"], {
-    //     maxAge: process.env.MAX_COOKIE_AGE,
-    //   });
-    //   res.cookie("username", req.cookies["username"], {
-    //     maxAge: process.env.MAX_COOKIE_AGE,
-    //   });
-    // }
-
-    // setCookies();
-    next();
+        res.locals.cookieResult = "Authorized";
+        console.log("cookie-validator set authorized, now returning.");
+      } else {
+        res.locals.cookieResult = "Unauthorized";
+      }
+    }
+  } catch (err) {
+    console.log("cookie-validator threw", err.message);
   }
+  next();
 }
 
 function validateInputs(useruuid, username) {
+  console.log(
+    "cookie-validator validateInputs received useruuid, username",
+    useruuid,
+    username
+  );
+
   if (useruuid === undefined) {
     return false;
   }
@@ -70,24 +76,12 @@ function validateInputs(useruuid, username) {
   return true;
 }
 
-function validatePresenter(useruuid) {
-  const result = Presenter.find({
+async function validatePresenter(useruuid) {
+  const result = await Presenter.find({
     uuid: useruuid,
     deleted: false,
-  })
-    .exec()
-    .then((dbFindResult) => {
-      if (dbFindResult[0]) {
-        return Promise.resolve(dbFindResult[0].uuid);
-      } else {
-        return Promise.reject("Presenter not found.");
-      }
-    })
-    .catch((error) =>
-      console.error("Database error while searching for Presenter:", error)
-    );
-
-  return result;
+  }).exec();
+  return result[0];
 }
 
 module.exports = validateCookies;
