@@ -46,31 +46,25 @@ router.get("/authorize", authorize, async (req, res, next) => {
 });
 
 router.get("/words/:category", cookieValidator, async (req, res, next) => {
+  console.log("GET words/:category params.id", req.params.category);
   const category = req.params.category;
-  const getWords = require("../../route-handlers/get-words");
 
-  if (!category) {
-    res.status(400).json({ message: "missing category in params." });
+  if (res.locals.cookieResult === "Authorized" && category.length > 0) {
+    const getWords = require("../../route-handlers/get-words");
+    const cat = category.trim();
+    console.log("calling getWords.");
+    const wordList = await getWords(req.cookies["useruuid"], cat);
+    console.log("route /words/:category will return wordList", wordList);
+    res.status(200).json(wordList);
   } else {
-    // todo: when cache enabled also send req.path to getWords func
-    getWords(req.cookies["useruuid"], category)
-      .then((wordList) => {
-        res.status(200).send({ wordList });
-      })
-      .catch((error) => {
-        // todo: fix this catch to not leak code details
-        console.log(
-          "get words/:category unable to query using supplied category",
-          category,
-          error
-        );
-        res.status(500).json({ message: "Unable to query category." });
-      });
+    const msg = res.locals.cookieResult;
+    res.status(403).json({ message: msg });
   }
 });
 
 router.post("/word", cookieValidator, async (req, res, next) => {
   const { category, word } = req.body;
+  console.log('POST word body', category, word);
 
   if (!category || !word) {
     res.status(400).json({ message: "missing body." });
