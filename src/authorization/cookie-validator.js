@@ -43,11 +43,7 @@ async function validateCookies(req, res, next) {
 }
 
 function validateInputs(useruuid, username) {
-  console.log(
-    "cookie-validator validateInputs received useruuid, username",
-    useruuid,
-    username
-  );
+  console.log("cookie-validator validateInputs received useruuid, username");
 
   if (useruuid === undefined) {
     return false;
