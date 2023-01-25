@@ -64,14 +64,26 @@ router.get("/words/:category", cookieValidator, async (req, res, next) => {
 
 router.post("/word", cookieValidator, async (req, res, next) => {
   const { category, word } = req.body;
-  console.log('POST word body', category, word);
+  console.log("POST word body", category, word);
 
-  if (!category || !word) {
-    res.status(400).json({ message: "missing body." });
-  } else {
+  if (res.locals.cookieResult === "Authorized" || category || word) {
     const addWord = require("../../route-handlers/add-new-word");
     const result = await addWord(req.cookies["useruuid"], category, word);
     res.status(200).json({ message: result });
+  } else {
+    res.status(400).json({ message: "missing body." });
+  }
+});
+
+router.get("/categories", cookieValidator, async (req, res, next) => {
+  console.log("GET Categories for user", req.cookies["useruuid"]);
+
+  if (res.locals.cookieResult === "Authorized") {
+    const getCategories = require("../../route-handlers/get-categories");
+    const result = await getCategories(req.cookies["useruuid"]);
+    res.status(200).json( result );
+  } else {
+    res.status(400).json({ message: "Unauthorized" });
   }
 });
 
