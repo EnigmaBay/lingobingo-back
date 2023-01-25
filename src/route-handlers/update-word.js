@@ -9,7 +9,9 @@ async function updateWord(req, res, category, oldWord, replacementWord) {
   const newWord = checkString(replacementWord);
 
   if (!owner || !cat || !word || !newWord) {
-    return;
+    res.locals.statusCode = 400;
+    res.locals.resultMsg = 'Invalid request';
+    return word;
   }
 
   try {
@@ -28,7 +30,6 @@ async function updateWord(req, res, category, oldWord, replacementWord) {
       findResult["word"] = newWord;
       findResult["updated"] = timeStamp;
       await findResult.save();
-      return newWord;
     } else {
       console.log(
         "update-word findResult empty or category not equal to input category:",
@@ -39,11 +40,14 @@ async function updateWord(req, res, category, oldWord, replacementWord) {
       );
       res.locals.statusCode = 404;
       res.locals.resultMsg = "Not found";
-      return;
     }
   } catch (error) {
-    return error.message;
+    console.log('update-word error', error.message);
+    res.locals.statusCode = 500;
+    res.locals.resultMsg = 'Error';
   }
+
+  return newWord;
 }
 
 module.exports = updateWord;
