@@ -1,6 +1,6 @@
-const LingoWord = require('../models/lingowordModel');
-const checkString = require('../utils/validate-inputs');
-const timeStamper = require('../utils/time-stamper');
+const LingoWord = require("../models/lingowordModel");
+const checkString = require("../utils/validate-inputs");
+const timeStamper = require("../utils/time-stamper");
 
 async function updateWord(req, res, category, oldWord, replacementWord) {
   const owner = checkString(req.cookies["useruuid"]);
@@ -13,26 +13,33 @@ async function updateWord(req, res, category, oldWord, replacementWord) {
   }
 
   try {
-    const findResult = await LingoWord.find({
+    const findResult = await LingoWord.findOne({
       word: word,
       category: cat,
       owner: owner,
       deleted: false,
     }).exec();
 
-    console.log('update-word findResult is', findResult);
+    console.log("update-word findResult is", findResult);
 
-    if (!findResult) {
-      res.locals.statusCode = 404;
-      res.locals.resultMsg = 'Not found';
-      return;
-    } else {
-      const result = findResult[0];
+    if (findResult && category === findResult.category) {
+      console.log("update-word findResult exists and category matches");
       const timeStamp = timeStamper();
-      result['word'] = newWord;
-      result['updated'] = timeStamp;
-      await result.save();
+      findResult["word"] = newWord;
+      findResult["updated"] = timeStamp;
+      await findResult.save();
       return newWord;
+    } else {
+      console.log(
+        "update-word findResult empty or category not equal to input category:",
+        category,
+        "word, new word:",
+        word,
+        newWord
+      );
+      res.locals.statusCode = 404;
+      res.locals.resultMsg = "Not found";
+      return;
     }
   } catch (error) {
     return error.message;

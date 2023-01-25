@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 const authorize = require("../../authorization/authorize");
-const { generateUuid, store } = require("../../utils/presenter-utils");
 const cookieSetter = require("../../authorization/cookie-setter");
 const cookieValidator = require("../../authorization/cookie-validator");
 
@@ -22,6 +21,8 @@ router.get("/authorize", authorize, async (req, res, next) => {
   if (!req.user) {
     res.status(400).json({ message: "Authorization failed." });
   } else {
+    const { generateUuid, store } = require("../../utils/presenter-utils");
+    
     const presenterUuid = await generateUuid(
       req.user.given_name,
       req.user.email,
