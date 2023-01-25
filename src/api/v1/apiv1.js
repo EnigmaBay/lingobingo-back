@@ -49,16 +49,22 @@ router.get("/words/:category", cookieValidator, async (req, res, next) => {
   console.log("GET words/:category params.id", req.params.category);
   const category = req.params.category;
 
-  if (res.locals.cookieResult === "Authorized" && category.length > 0) {
+  if (res.locals.cookieResult !== "Authorized") {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (category.length === 0) {
+    const msg = res.locals.cookieResult;
+    res.status(400).json({ message: "Missing category" });
+  }
+
+  if (res.locals.cookieResult === "Authorized" && category.length >= 1) {
     const getWords = require("../../route-handlers/get-words");
     const cat = category.trim();
     console.log("calling getWords.");
     const wordList = await getWords(req.cookies["useruuid"], cat);
     console.log("route /words/:category will return wordList", wordList);
     res.status(200).json(wordList);
-  } else {
-    const msg = res.locals.cookieResult;
-    res.status(403).json({ message: msg });
   }
 });
 
@@ -66,12 +72,18 @@ router.post("/word", cookieValidator, async (req, res, next) => {
   const { category, word } = req.body;
   console.log("POST word body", category, word);
 
-  if (res.locals.cookieResult === "Authorized" || category || word) {
+  if (res.locals.cookieResult !== "Authorized") {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (!category || !word) {
+    res.status(400).json({ message: "missing body" });
+  }
+
+  if (res.locals.cookieResult === "Authorized" && category && word) {
     const addWord = require("../../route-handlers/add-new-word");
     const result = await addWord(req.cookies["useruuid"], category, word);
     res.status(200).json({ message: result });
-  } else {
-    res.status(400).json({ message: "missing body." });
   }
 });
 
@@ -81,9 +93,9 @@ router.get("/categories", cookieValidator, async (req, res, next) => {
   if (res.locals.cookieResult === "Authorized") {
     const getCategories = require("../../route-handlers/get-categories");
     const result = await getCategories(req.cookies["useruuid"]);
-    res.status(200).json( result );
+    res.status(200).json(result);
   } else {
-    res.status(400).json({ message: "Unauthorized" });
+    res.status(401).json({ message: "Unauthorized" });
   }
 });
 
