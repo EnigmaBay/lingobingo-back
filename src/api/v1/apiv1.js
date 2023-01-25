@@ -22,7 +22,7 @@ router.get("/authorize", authorize, async (req, res, next) => {
     res.status(400).json({ message: "Authorization failed." });
   } else {
     const { generateUuid, store } = require("../../utils/presenter-utils");
-    
+
     const presenterUuid = await generateUuid(
       req.user.given_name,
       req.user.email,
@@ -126,6 +126,37 @@ router.patch("/word", cookieValidator, async (req, res, next) => {
     }
   } else {
     console.log("An error occurred in PATCH /word");
+    res.status(500);
+  }
+});
+
+router.delete("/word", cookieValidator, async (req, res, next) => {
+  console.log("DELETE Word for user", req.cookies["useruuid"]);
+
+  if (res.locals.cookieResult !== "Authorized") {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const { category, word } = req.body;
+  console.log("DELETE Word category, word", category, word);
+
+  if (!category || !word) {
+    res.status(400).json({ message: "Missing body" });
+  }
+
+  if (res.locals.cookieResult === "Authorized") {
+    const removeWord = require("../../route-handlers/remove-word");
+    const result = await removeWord(req, res, category, word);
+
+    if (res.locals.statusCode && res.locals.resultMsg) {
+      const statusCode = res.locals.statusCode;
+      const resultMsg = res.locals.resultMsg;
+      res.status(statusCode).json(resultMsg);
+    } else {
+      res.status(200).json(result);
+    }
+  } else {
+    console.log("An error occurred in DELETE /word");
     res.status(500);
   }
 });
