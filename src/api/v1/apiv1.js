@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const authorize = require("../../authorization/authorize");
 const cookieSetter = require("../../authorization/cookie-setter");
 const cookieValidator = require("../../authorization/cookie-validator");
+const getGameboard = require("../../route-handlers/get-gameboard");
 
 mongoose.connect(process.env.MONGO_CONN_STRING);
 const db = mongoose.connection;
@@ -13,7 +14,7 @@ db.once("open", function () {
   console.log("Mongoose is connected.");
 });
 
-router.get('/authorize', authorize, cookieSetter);
+router.get("/authorize", authorize, cookieSetter);
 
 router.get("/words/:category", cookieValidator, async (req, res, next) => {
   console.log("GET words/:category params.id", req.params.category);
@@ -129,5 +130,7 @@ router.delete("/word", cookieValidator, async (req, res, next) => {
     res.status(500);
   }
 });
+
+router.get("/gameboard/:id", getGameboard);
 
 module.exports = router;
