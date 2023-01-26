@@ -34,40 +34,28 @@ function store(presenterUuid) {
           if (createResult) {
             return Promise.resolve(createResult.uuid);
           } else {
-            console.error('presenter create failed, rejecting request.');
+            console.error("presenter create failed, rejecting request.");
             return Promise.reject("Failed to create.");
           }
         });
       }
     })
-    .catch((error) => console.error('presenter store failed. error:', error));
+    .catch((error) => console.error("presenter store failed. error:", error));
 
   return result;
 }
 
-// add gameboard to presenter. Returns gameboard uuid if sucessfull, -1 if not.
-async function addGameboard(presenterId, gameboardId) {
-  // todo: test and refine this function
-  try {
-    const existingPresenter = await Presenter.find({
-      uuid: presenterId,
-    }).exec();
-
-    if (!existingPresenter[0]) {
-      return -1;
-    } else {
-      const existingBingoboards = existingPresenter[0].bingoboards;
-      existingPresenter[0].bingoboards.push(gameboardId);
-      const updatedPresenter = await existingPresenter[0].save();
-      return gameboardId;
-    }
-  } catch (error) {
-    console.error("adding gameboard to presenter profile failed. ", error);
-  }
+async function validate(presenterUuid) {
+  const Presenter = require("../models/presenterModel");
+  const result = await Presenter.find({
+    uuid: presenterUuid,
+    deleted: false,
+  }).exec();
+  return result[0];
 }
 
 module.exports = {
   generateUuid,
   store,
-  addGameboard,
+  validate,
 };
