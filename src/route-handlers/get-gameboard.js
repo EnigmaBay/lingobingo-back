@@ -1,6 +1,5 @@
-
 async function getGameboard(req, res, next) {
-  const { checkString } = require("../utils/validate-inputs");
+  const { checkString } = require("src/utils/validate-inputs.js");
   const uuid = checkString(req.params.id);
 
   console.log(
@@ -8,7 +7,7 @@ async function getGameboard(req, res, next) {
     uuid
   );
 
-  const GameBoard = require("../models/bingoboardModel");
+  const GameBoard = require("src/models/bingoboardModel.js");
   const foundGameboard = await GameBoard.findOne({
     uuid: uuid,
     isDeleted: false,
@@ -21,14 +20,14 @@ async function getGameboard(req, res, next) {
     foundGameboard.uuid === uuid &&
     !foundGameboard.isDeleted
   ) {
-    const getWords = require("./get-words");
+    const getWords = require("src/route-handlers/get-words.js");
     const { owner, category } = foundGameboard;
     const wordList = getWords(owner, category);
     res.status(200).json(wordList);
+  } else {
+    console.log("get-gameboard returning not found!");
+    res.status(404).json({ message: "Must create gameboard first." });
   }
-
-  console.log("get-gameboard returning -1 (not found).");
-  return -1;
 }
 
 module.exports = getGameboard;
