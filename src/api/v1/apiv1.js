@@ -13,38 +13,7 @@ db.once("open", function () {
   console.log("Mongoose is connected.");
 });
 
-// router.get("/", (req, res) => {
-//   res.status(501).json({ message: "api/v1/ not implemented." });
-// });
-
-router.get("/authorize", authorize, async (req, res, next) => {
-  if (!req.user) {
-    res.status(400).json({ message: "Authorization failed." });
-  } else {
-    const { generateUuid, store } = require("../../utils/presenter-utils");
-
-    const presenterUuid = await generateUuid(
-      req.user.given_name,
-      req.user.email,
-      req.user.locale
-    );
-
-    store(presenterUuid)
-      .then((validUuid) => {
-        res.locals.presenterUuid = validUuid;
-        cookieSetter(req, res, next);
-
-        if (res.locals.cookieResult) {
-          res.json({ message: "Authorization granted." });
-        } else {
-          res.json({ message: "Unauthorized." });
-        }
-      })
-      .catch((error) =>
-        res.status(500).json({ mesesage: "Unable to store presenter uuid." })
-      );
-  }
-});
+router.get('/authorize', authorize, cookieSetter);
 
 router.get("/words/:category", cookieValidator, async (req, res, next) => {
   console.log("GET words/:category params.id", req.params.category);
