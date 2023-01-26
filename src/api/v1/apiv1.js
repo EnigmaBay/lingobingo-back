@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
-const authorize = require("../../authorization/authorize");
-const cookieSetter = require("../../authorization/cookie-setter");
-const cookieValidator = require("../../authorization/cookie-validator");
-const getGameboard = require("../../route-handlers/get-gameboard");
+const authorize = require("authorization/authorize");
+const cookieSetter = require("authorization/cookie-setter");
+const cookieValidator = require("authorization/cookie-validator");
+const getGameboard = require("src/route-handlers/get-gameboard.js");
 
 mongoose.connect(process.env.MONGO_CONN_STRING);
 const db = mongoose.connection;
@@ -132,5 +132,16 @@ router.delete("/word", cookieValidator, async (req, res, next) => {
 });
 
 router.get("/gameboard/:id", getGameboard);
+
+router.post("/gameboard", cookieValidator, async (req, res, next) => {
+  if (res.locals.cookieResult === "Authorized") {
+    const createGameboard = require("src/route-handlers/create-gameboard.js");
+    res.locals.gameboardUuid = createGameboard(req, res, next);
+    const setGameboard = require("src/route-handlers/set-gameboard.js");
+    setGameboard(req, res, next);
+  } else {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+});
 
 module.exports = router;
