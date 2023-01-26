@@ -134,14 +134,10 @@ router.delete("/word", cookieValidator, async (req, res, next) => {
 router.get("/gameboard/:id", getGameboard);
 
 router.post("/gameboard", cookieValidator, async (req, res, next) => {
-  if (res.locals.cookieResult === "Authorized") {
     const createGameboard = require("src/route-handlers/create-gameboard.js");
-    res.locals.gameboardUuid = createGameboard(req, res, next);
+    createGameboard(req, res, next);
     const setGameboard = require("src/route-handlers/set-gameboard.js");
     setGameboard(req, res, next);
-  } else {
-    res.status(401).json({ message: "Unauthorized" });
-  }
 });
 
 module.exports = router;
