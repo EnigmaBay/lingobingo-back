@@ -50,6 +50,7 @@ async function cookieSetter(req, res, next) {
     console.log("cookie-setter threw", error.message);
     res.status(500).json({ message: "Error" });
   }
+  return;
 }
 
 function set(req, res) {
