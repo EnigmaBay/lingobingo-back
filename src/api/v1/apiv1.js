@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
-const authorize = require("authorization/authorize");
-const cookieSetter = require("authorization/cookie-setter");
-const cookieValidator = require("authorization/cookie-validator");
-const getGameboard = require("src/route-handlers/get-gameboard.js");
+const authorize = require("../../authorization/authorize");
+const cookieSetter = require("../../authorization/cookie-setter");
+const cookieValidator = require("../../authorization/cookie-validator");
+const getGameboard = require("../../route-handlers/get-gameboard");
 
 mongoose.connect(process.env.MONGO_CONN_STRING);
 const db = mongoose.connection;
@@ -134,10 +134,10 @@ router.delete("/word", cookieValidator, async (req, res, next) => {
 router.get("/gameboard/:id", getGameboard);
 
 router.post("/gameboard", cookieValidator, async (req, res, next) => {
-    const createGameboard = require("src/route-handlers/create-gameboard.js");
-    createGameboard(req, res, next);
-    const setGameboard = require("src/route-handlers/set-gameboard.js");
-    setGameboard(req, res, next);
+  const createGameboard = require("../../route-handlers/create-gameboard");
+  createGameboard(req, res, next);
+  const setGameboard = require("../../route-handlers/set-gameboard.js");
+  setGameboard(req, res, next);
 });
 
 module.exports = router;
