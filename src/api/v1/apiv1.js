@@ -5,6 +5,8 @@ const authorize = require("../../authorization/authorize");
 const cookieSetter = require("../../authorization/cookie-setter");
 const cookieValidator = require("../../authorization/cookie-validator");
 const getGameboard = require("../../route-handlers/get-gameboard");
+const createGameboard = require("../../route-handlers/create-gameboard");
+const setGameboard = require("../../route-handlers/set-gameboard.js");
 
 mongoose.connect(process.env.MONGO_CONN_STRING);
 const db = mongoose.connection;
@@ -102,19 +104,12 @@ router.patch("/word", cookieValidator, async (req, res, next) => {
 
 router.delete("/word", cookieValidator, async (req, res, next) => {
   console.log("DELETE Word for user", req.cookies["useruuid"]);
-
-  if (res.locals.cookieResult !== "Authorized") {
-    res.status(401).json({ message: "Unauthorized" });
-  }
-
   const { category, word } = req.body;
   console.log("DELETE Word category, word", category, word);
 
   if (!category || !word) {
     res.status(400).json({ message: "Missing body" });
-  }
-
-  if (res.locals.cookieResult === "Authorized") {
+  } else {
     const removeWord = require("../../route-handlers/remove-word");
     const result = await removeWord(req, res, category, word);
 
@@ -125,19 +120,17 @@ router.delete("/word", cookieValidator, async (req, res, next) => {
     } else {
       res.status(200).json(result);
     }
-  } else {
-    console.log("An error occurred in DELETE /word");
-    res.status(500);
   }
 });
 
 router.get("/gameboard/:id", getGameboard);
 
-router.post("/gameboard", cookieValidator, async (req, res, next) => {
-  const createGameboard = require("../../route-handlers/create-gameboard");
-  createGameboard(req, res, next);
-  const setGameboard = require("../../route-handlers/set-gameboard.js");
-  setGameboard(req, res, next);
-});
+router.post("/gameboard", cookieValidator, createGameboard, setGameboard, async (req, res, next) => {
+    const statusCode = res.locals.statusCode;
+    const resultMsg = res.locals.resultMsg;
+
+    res.status(statusCode).json({ message: resultMsg });
+  }
+);
 
 module.exports = router;
