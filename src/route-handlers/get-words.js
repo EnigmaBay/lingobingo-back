@@ -19,6 +19,7 @@ function getWords(uuid, lingoCategory) {
     .exec()
     .then((response) => parseResponse(response));
 
+  console.log("get-words findResult is", findResult);
   return findResult;
 }
 
