@@ -1,5 +1,5 @@
 const LingoWord = require("../models/lingowordModel");
-const checkString = require("../utils/validate-inputs");
+const { checkString } = require("../utils/validate-inputs");
 const timeStamper = require("../utils/time-stamper");
 
 async function updateWord(req, res, category, oldWord, replacementWord) {
@@ -10,7 +10,7 @@ async function updateWord(req, res, category, oldWord, replacementWord) {
 
   if (!owner || !cat || !word || !newWord) {
     res.locals.statusCode = 400;
-    res.locals.resultMsg = 'Invalid request';
+    res.locals.resultMsg = "Invalid request";
     return word;
   }
 
@@ -42,9 +42,9 @@ async function updateWord(req, res, category, oldWord, replacementWord) {
       res.locals.resultMsg = "Not found";
     }
   } catch (error) {
-    console.log('update-word error', error.message);
+    console.log("update-word error", error.message);
     res.locals.statusCode = 500;
-    res.locals.resultMsg = 'Error';
+    res.locals.resultMsg = "Error";
   }
 
   return newWord;
