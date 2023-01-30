@@ -15,19 +15,25 @@ async function getGameboard(req, res, next) {
 
   console.log("get-gameboard foundGameboard is", foundGameboard);
 
-  if (
-    foundGameboard &&
-    foundGameboard.uuid === uuid &&
-    !foundGameboard.isDeleted
-  ) {
+  if (foundGameboard) {
     const getWords = require("../route-handlers/get-words");
     const { owner, category } = foundGameboard;
-    const wordList = getWords(owner, category);
-    res.status(200).json(wordList);
+    console.log(
+      "get-gameboard recovered gameboard owner and category:",
+      owner,
+      category
+    );
+    const wordList = await getWords(owner, category);
+    console.log("get-gameboard wordList from get-words is", wordList);
+    res.locals.statusCode = 200;
+    res.locals.resultMsg = wordList;
   } else {
     console.log("get-gameboard returning not found!");
-    res.status(404).json({ message: "Must create gameboard first." });
+    res.locals.statusCode = 404;
+    res.locals.resultMsg = { message: "Ask your presenter for a new URL." };
   }
+
+  next();
 }
 
 module.exports = getGameboard;

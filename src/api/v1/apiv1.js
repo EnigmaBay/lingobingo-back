@@ -123,7 +123,11 @@ router.delete("/word", cookieValidator, async (req, res, next) => {
   }
 });
 
-router.get("/gameboard/:id", getGameboard);
+router.get("/gameboard/:id", getGameboard, async (req, res, next)=>{
+  const statusCode = res.locals.statusCode;
+  const resultMsg = res.locals.resultMsg;
+  res.status(statusCode).json(resultMsg);
+});
 
 router.post("/gameboard", cookieValidator, createGameboard, setGameboard, async (req, res, next) => {
     const statusCode = res.locals.statusCode;
