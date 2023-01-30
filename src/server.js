@@ -1,33 +1,47 @@
 const express = require("express");
 const app = express();
-const cookieParser = require('cookie-parser');
+const cookieParser = require("cookie-parser");
 
 require("dotenv").config();
 const PORT = process.env.PORT || 3002;
 
 app.use(express.json());
 app.use(cookieParser());
-app.disable('x-powered-by');
+app.disable("x-powered-by");
+
+console.log("node mode:", process.env.NODE_ENV);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "ehlo werld!" });
 });
 
-const apiv1 = require('./api/v1/apiv1');
-app.use('/api/v1', apiv1);
+const apiv1 = require("./api/v1/apiv1");
+app.use("/api/v1", apiv1);
 
-app.all("*", (req, res) =>{
-  res.status(404).json({ message: 'Nothing here, padawan.' });
+app.all("*", (req, res) => {
+  if (!res.headersSent) {
+    res.status(404).json({ message: "Nothing here, padawan." });
+  }
 });
 
 // error handler middleware defined after last app.use and route calls
-app.use((err, req, res, next)=>{
-  if(res.headersSent) {
-    console.log('custom error handler detected headers already sent.');
-    return next(err);
-  }
+app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'An error occurred.'});
+
+  if (res.headersSent) {
+    console.log(
+      "custom error handler detected headers already sent so delegating to Express default error handler."
+    );
+    return next(err);
+  } else {
+    let errMsg;
+    if (!err) {
+      errMsg = "Custom error handler return.";
+    } else {
+      errMsg = err.message;
+    }
+    res.status(400).json({ message: errMsg });
+  }
 });
 
 app.listen(PORT, () => {
