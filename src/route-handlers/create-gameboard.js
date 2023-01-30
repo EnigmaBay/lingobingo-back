@@ -1,16 +1,10 @@
-// gather owner and category, generate a uuid and store it to the database
-// inputs: ownerUuid, Category
-// returns: gameboardUuid or -1
+const { checkString } = require("../utils/validate-inputs");
+const generateUuid = require("../utils/gameboard-uuid-generator");
 
 async function createGameboard(req, res, next) {
   // validate inputs
   const ownerUuid = req.cookies["useruuid"];
   const category = req.body.category;
-  console.log(
-    "create-gameboard helper received ownerUuid, category",
-    ownerUuid,
-    category
-  );
 
   // generate a gameboardUuid
   const presenterUuid = checkString(ownerUuid);
@@ -25,10 +19,15 @@ async function createGameboard(req, res, next) {
       category: category,
     }).exec();
 
+    console.log(
+      "foundGameboard object returned from GameBoard.findOne()",
+      foundGameboard
+    );
+
     if (!foundGameboard) {
-      const generateUuid = require("src/utils/gameboard-uuid-generator.js");
       const concatString = `${presenterUuid}${cat}`;
       gameboardUuid = generateUuid(concatString);
+
       // create a gameboard
       await GameBoard.create({
         uuid: gameboardUuid,
@@ -36,15 +35,20 @@ async function createGameboard(req, res, next) {
         category: category,
       });
     } else {
-      gameboardUuid = foundGameboard.uuid;
+      gameboardUuid = foundGameboard["uuid"];
     }
   } catch (error) {
     console.log("create-gameboard threw error:", error.message);
-    res.status(500).json({ message: "Unable to complete request." });
+    res.locals.statusCode = 500;
+    res.locals.resultMsg = "Unable to complete request.";
   }
 
   // return gameboard UUID
-  res.locals.gameboardUuid = foundGameboard.uuid;
+  res.locals.gameboardUuid = gameboardUuid;
+  console.log(
+    "create-gameboard: gameboardUuid is",
+    res.locals.gameboardUuid
+  );
   next();
 }
 
