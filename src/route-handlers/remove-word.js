@@ -1,5 +1,5 @@
 const LingoWord = require("../models/lingowordModel");
-const checkString = require("../utils/validate-inputs");
+const { checkString } = require("../utils/validate-inputs");
 const timeStamper = require("../utils/time-stamper");
 
 async function deleteWord(req, res, category, wordToDelete) {

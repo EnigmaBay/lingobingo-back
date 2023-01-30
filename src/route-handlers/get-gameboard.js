@@ -1,5 +1,5 @@
 async function getGameboard(req, res, next) {
-  const { checkString } = require("src/utils/validate-inputs.js");
+  const { checkString } = require("../utils/validate-inputs");
   const uuid = checkString(req.params.id);
 
   console.log(
@@ -7,7 +7,7 @@ async function getGameboard(req, res, next) {
     uuid
   );
 
-  const GameBoard = require("src/models/bingoboardModel.js");
+  const GameBoard = require("../models/bingoboardModel");
   const foundGameboard = await GameBoard.findOne({
     uuid: uuid,
     isDeleted: false,
@@ -20,7 +20,7 @@ async function getGameboard(req, res, next) {
     foundGameboard.uuid === uuid &&
     !foundGameboard.isDeleted
   ) {
-    const getWords = require("src/route-handlers/get-words.js");
+    const getWords = require("../route-handlers/get-words");
     const { owner, category } = foundGameboard;
     const wordList = getWords(owner, category);
     res.status(200).json(wordList);

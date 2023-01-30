@@ -1,5 +1,5 @@
 const LingoWord = require("../models/lingowordModel");
-const checkString = require("../utils/validate-inputs");
+const { checkString } = require("../utils/validate-inputs");
 
 async function addWord(ownerId, categoryId, lingoWord) {
   const owner = checkString(ownerId);
