@@ -12,20 +12,22 @@ async function createGameboard(req, res, next) {
   const cat = checkString(category);
   let gameboardUuid;
 
+  // if not enough words doesn't matter if gameboard exists stop
+  const words = await getWords(ownerUuid, category);
+
   try {
+    if (words.length < 24) {
+      // because we are in middleware and 24 words or more is absolute
+      // requirement throw an appropriate error message here.
+      throw new Error("create-gameboard: Not enough words in category.");
+    }
+
     // find existing
     const GameBoard = require("../models/bingoboardModel");
     const foundGameboard = await GameBoard.findOne({
       owner: ownerUuid,
       category: category,
     }).exec();
-
-    console.log(
-      "foundGameboard object returned from GameBoard.findOne()",
-      foundGameboard
-    );
-
-    let words;
 
     if (!foundGameboard) {
       const concatString = `${presenterUuid}${cat}`;
@@ -38,27 +40,19 @@ async function createGameboard(req, res, next) {
         category: category,
       });
     } else {
-      words = await getWords(ownerUuid, category);
-      if (words.count > 23) {
-        gameboardUuid = foundGameboard["uuid"];
-      } else {
-        console.log(
-          "create-gameboard: not enough words in category!",
-          words.count
-        );
-        throw new Error("Not eough words in category.");
-      }
+      gameboardUuid = foundGameboard["uuid"];
     }
   } catch (error) {
+    // catch error message and set status and message then let
+    // error handler do the rest.
     console.log("create-gameboard threw error:", error.message);
     res.locals.statusCode = 400;
-    res.locals.resultMsg =
-      "Need at least 24 words in a category to create a board.";
+    res.locals.resultMsg = error.message;
+    next(error);
   }
 
   // return gameboard UUID
   res.locals.gameboardUuid = gameboardUuid;
-  console.log("create-gameboard: gameboardUuid is", res.locals.gameboardUuid);
   next();
 }
 
