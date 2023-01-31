@@ -7,6 +7,7 @@ const cookieValidator = require("../../authorization/cookie-validator");
 const getGameboard = require("../../route-handlers/get-gameboard");
 const createGameboard = require("../../route-handlers/create-gameboard");
 const setGameboard = require("../../route-handlers/set-gameboard.js");
+const deleteGameboard = require('../../route-handlers/delete-gameboard');
 
 mongoose.connect(process.env.MONGO_CONN_STRING);
 const db = mongoose.connection;
@@ -135,5 +136,11 @@ router.post("/gameboard", cookieValidator, createGameboard, setGameboard, async 
     res.status(statusCode).json({ message: resultMsg });
   }
 );
+
+router.delete('/gameboard', cookieValidator, deleteGameboard, async(req, res, next)=>{
+  const statusCode = res.locals.statusCode;
+  const resultMsg = res.locals.resultMsg;
+  res.status(statusCode).json({message: resultMsg });
+});
 
 module.exports = router;
