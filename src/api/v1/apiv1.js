@@ -9,6 +9,9 @@ const createGameboard = require("../../route-handlers/create-gameboard");
 const setGameboard = require("../../route-handlers/set-gameboard.js");
 const deleteGameboard = require("../../route-handlers/delete-gameboard");
 
+// maintain strictQuery behavior in Mongoose 7 (https://mongoosejs.com/docs/guide.html#strictQuery)
+mongoose.set("strictQuery", true);
+
 mongoose.connect(process.env.MONGO_CONN_STRING);
 const db = mongoose.connection;
 
@@ -39,9 +42,7 @@ router.get("/words/:category", cookieValidator, async (req, res, next) => {
   if (res.locals.cookieResult === "Authorized" && category.length >= 1) {
     const getWords = require("../../route-handlers/get-words");
     const cat = category.trim();
-    console.log("calling getWords.");
     const wordList = await getWords(req.cookies["useruuid"], cat);
-    console.log("route /words/:category will return wordList", wordList);
     res.status(200).json(wordList);
   }
 });
@@ -68,9 +69,9 @@ router.post("/word", cookieValidator, async (req, res, next) => {
 router.get("/categories", cookieValidator, async (req, res, next) => {
   const getCategories = require("../../route-handlers/get-categories");
   const result = await getCategories(req, res, next);
-  console.log('categories: getCategories returned',result);
+  console.log('categories: getCategories returned result, result.length',result, result.length);
   const resultMsg = result;
-  const statusCode = result.count > 0 ? 200 : 404;
+  const statusCode = result.length > 0 && 200 || 404;
   res.status(statusCode).json(resultMsg);
 });
 
