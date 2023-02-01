@@ -13,18 +13,16 @@ async function getGameboard(req, res, next) {
     isDeleted: false,
   }).exec();
 
-  console.log("get-gameboard foundGameboard is", foundGameboard);
-
   if (foundGameboard) {
     const getWords = require("../route-handlers/get-words");
     const { owner, category } = foundGameboard;
-    console.log(
-      "get-gameboard recovered gameboard owner and category:",
-      owner,
-      category
-    );
+    // console.log(
+    //   "get-gameboard recovered gameboard owner and category:",
+    //   owner,
+    //   category
+    // );
     const wordList = await getWords(owner, category);
-    console.log("get-gameboard wordList from get-words is", wordList);
+    // console.log("get-gameboard wordList from get-words is", wordList);
     res.locals.statusCode = 200;
     res.locals.resultMsg = wordList;
   } else {

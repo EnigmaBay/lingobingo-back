@@ -22,7 +22,7 @@ async function updateWord(req, res, category, oldWord, replacementWord) {
       deleted: false,
     }).exec();
 
-    console.log("update-word findResult is", findResult);
+    // console.log("update-word findResult is", findResult);
 
     if (findResult && category === findResult.category) {
       console.log("update-word findResult exists and category matches");

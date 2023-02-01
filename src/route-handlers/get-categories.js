@@ -18,7 +18,7 @@ async function getCategories(req, res, next) {
       console.log("get-categories cache MISS");
       cache[key] = {};
       cache[key].timestamp = timeStamper();
-      cache[key].data = LingoWord.find(
+      cache[key].data = await LingoWord.find(
         {
           owner: uuid,
           deleted: false,
@@ -26,7 +26,13 @@ async function getCategories(req, res, next) {
         "category"
       )
         .exec()
-        .then((response) => parseResponse(response))
+        .then((response) => {
+          const mySet = new Set();
+          response.forEach((item) => {
+            mySet.add(item["category"]);
+          });
+          return Array.from(mySet);
+        })
         .catch((error) => {
           console.log("error in getCategories", error.message);
           return [];
@@ -34,21 +40,6 @@ async function getCategories(req, res, next) {
     }
 
     return cache[key].data;
-  }
-}
-
-function parseResponse(dbResponse) {
-  const mySet = new Set();
-
-  try {
-    dbResponse.forEach((item) => {
-      mySet.add(item["category"]);
-    });
-
-    const result = Array.from(mySet);
-    return Promise.resolve(result);
-  } catch (error) {
-    return Promise.reject(error.message);
   }
 }
 

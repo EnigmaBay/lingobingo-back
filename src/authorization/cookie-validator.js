@@ -7,16 +7,15 @@ async function validateCookies(req, res, next) {
     req.cookies["username"]
   );
 
-  console.log("cookie-validator cookiesDefined", cookiesDefined);
-
   try {
     if (cookiesDefined) {
+      console.log("cookie-validator cookiesDefined was true.");
       const username = req.cookies["username"];
       const { validate } = require("../utils/presenter-utils");
       const presenter = await validate(req.cookies["useruuid"]);
 
-      if (presenter.uuid === req.cookies["useruuid"]) {
-        const presenterUuid = presenter.uuid;
+      if (presenter["uuid"] === req.cookies["useruuid"]) {
+        const presenterUuid = presenter["uuid"];
 
         res.cookie("username", username, {
           maxAge: process.env.MAX_COOKIE_AGE,

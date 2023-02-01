@@ -19,14 +19,14 @@ async function generateUuid(given_name, email, locale) {
 
 // set presenter stores the presenters uuid into the db
 function store(presenterUuid) {
-  const result = Presenter.find({
+  const result = Presenter.findOne({
     uuid: presenterUuid,
     deleted: false,
   })
     .exec()
     .then((dbFindResult) => {
-      if (dbFindResult[0]) {
-        return Promise.resolve(dbFindResult[0].uuid);
+      if (dbFindResult) {
+        return Promise.resolve(dbFindResult.uuid);
       } else {
         Presenter.create({
           uuid: presenterUuid,
@@ -47,11 +47,11 @@ function store(presenterUuid) {
 
 async function validate(presenterUuid) {
   const Presenter = require("../models/presenterModel");
-  const result = await Presenter.find({
+  const result = await Presenter.findOne({
     uuid: presenterUuid,
     deleted: false,
   }).exec();
-  return result[0];
+  return result;
 }
 
 module.exports = {
