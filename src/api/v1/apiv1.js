@@ -7,7 +7,7 @@ const cookieValidator = require("../../authorization/cookie-validator");
 const getGameboard = require("../../route-handlers/get-gameboard");
 const createGameboard = require("../../route-handlers/create-gameboard");
 const setGameboard = require("../../route-handlers/set-gameboard.js");
-const deleteGameboard = require('../../route-handlers/delete-gameboard');
+const deleteGameboard = require("../../route-handlers/delete-gameboard");
 
 mongoose.connect(process.env.MONGO_CONN_STRING);
 const db = mongoose.connection;
@@ -17,10 +17,10 @@ db.once("open", function () {
   console.log("Mongoose is connected.");
 });
 
-router.get("/authorize", authorize, cookieSetter, async (req, res, next)=>{
+router.get("/authorize", authorize, cookieSetter, async (req, res, next) => {
   const statusCode = res.locals.statusCode;
   const resultMsg = res.locals.resultMsg;
-  res.status(statusCode).json({message:resultMsg});
+  res.status(statusCode).json({ message: resultMsg });
 });
 
 router.get("/words/:category", cookieValidator, async (req, res, next) => {
@@ -66,15 +66,12 @@ router.post("/word", cookieValidator, async (req, res, next) => {
 });
 
 router.get("/categories", cookieValidator, async (req, res, next) => {
-  console.log("GET Categories for user", req.cookies["useruuid"]);
-
-  if (res.locals.cookieResult === "Authorized") {
-    const getCategories = require("../../route-handlers/get-categories");
-    const result = await getCategories(req.cookies["useruuid"]);
-    res.status(200).json(result);
-  } else {
-    res.status(401).json({ message: "Unauthorized" });
-  }
+  const getCategories = require("../../route-handlers/get-categories");
+  const result = await getCategories(req, res, next);
+  console.log('categories: getCategories returned',result);
+  const resultMsg = result;
+  const statusCode = result.count > 0 ? 200 : 404;
+  res.status(statusCode).json(resultMsg);
 });
 
 router.patch("/word", cookieValidator, async (req, res, next) => {
@@ -128,23 +125,33 @@ router.delete("/word", cookieValidator, async (req, res, next) => {
   }
 });
 
-router.get("/gameboard/:id", getGameboard, async (req, res, next)=>{
+router.get("/gameboard/:id", getGameboard, async (req, res, next) => {
   const statusCode = res.locals.statusCode;
   const resultMsg = res.locals.resultMsg;
   res.status(statusCode).json(resultMsg);
 });
 
-router.post("/gameboard", cookieValidator, createGameboard, setGameboard, async (req, res, next) => {
+router.post(
+  "/gameboard",
+  cookieValidator,
+  createGameboard,
+  setGameboard,
+  async (req, res, next) => {
     const statusCode = res.locals.statusCode;
     const resultMsg = res.locals.resultMsg;
     res.status(statusCode).json({ message: resultMsg });
   }
 );
 
-router.delete('/gameboard', cookieValidator, deleteGameboard, async(req, res, next)=>{
-  const statusCode = res.locals.statusCode;
-  const resultMsg = res.locals.resultMsg;
-  res.status(statusCode).json({message: resultMsg });
-});
+router.delete(
+  "/gameboard",
+  cookieValidator,
+  deleteGameboard,
+  async (req, res, next) => {
+    const statusCode = res.locals.statusCode;
+    const resultMsg = res.locals.resultMsg;
+    res.status(statusCode).json({ message: resultMsg });
+  }
+);
 
 module.exports = router;

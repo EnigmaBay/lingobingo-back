@@ -1,28 +1,43 @@
 const LingoWord = require("../models/lingowordModel");
 const { checkString } = require("../utils/validate-inputs");
+const cache = require("../utils/cache");
+const timeStamper = require("../utils/time-stamper");
 
-async function getCategories(useruuid) {
-  const uuid = checkString(useruuid);
+async function getCategories(req, res, next) {
+  const uuid = checkString(req.cookies["useruuid"]);
 
   if (!uuid) {
-    return;
+    return [];
   } else {
-    try {
-      const findResult = await LingoWord.find({
-        owner: uuid,
-        deleted: false,
-      }).exec();
+    const maxCacheLifetime = process.env.MAX_CACHE_LIFETIME;
+    const key = uuid + "-method-" + req.method + "-path-" + req.path;
 
-      const result = await parseResponse(findResult);
-      return result;
-    } catch (error) {
-      console.log("error in getCategories", error.message);
-      return [];
+    if (cache[key] && Date.now() - cache[key].timestamp < maxCacheLifetime) {
+      console.log("get-categories cache HIT");
+    } else {
+      console.log("get-categories cache MISS");
+      cache[key] = {};
+      cache[key].timestamp = timeStamper();
+      cache[key].data = LingoWord.find(
+        {
+          owner: uuid,
+          deleted: false,
+        },
+        "category"
+      )
+        .exec()
+        .then((response) => parseResponse(response))
+        .catch((error) => {
+          console.log("error in getCategories", error.message);
+          return [];
+        });
     }
+
+    return cache[key].data;
   }
 }
 
-async function parseResponse(dbResponse) {
+function parseResponse(dbResponse) {
   const mySet = new Set();
 
   try {
@@ -31,10 +46,9 @@ async function parseResponse(dbResponse) {
     });
 
     const result = Array.from(mySet);
-    return result;
+    return Promise.resolve(result);
   } catch (error) {
-    console.log("error in getCategories parseResponse", error.message);
-    return [];
+    return Promise.reject(error.message);
   }
 }
 
