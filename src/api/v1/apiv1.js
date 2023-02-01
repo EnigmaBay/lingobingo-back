@@ -17,7 +17,11 @@ db.once("open", function () {
   console.log("Mongoose is connected.");
 });
 
-router.get("/authorize", authorize, cookieSetter);
+router.get("/authorize", authorize, cookieSetter, async (req, res, next)=>{
+  const statusCode = res.locals.statusCode;
+  const resultMsg = res.locals.resultMsg;
+  res.status(statusCode).json({message:resultMsg});
+});
 
 router.get("/words/:category", cookieValidator, async (req, res, next) => {
   console.log("GET words/:category params.id", req.params.category);
