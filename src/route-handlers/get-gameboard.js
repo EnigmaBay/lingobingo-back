@@ -1,36 +1,41 @@
+const cache = require("../utils/cache");
+const timeStamper = require("../utils/time-stamper");
+
 async function getGameboard(req, res, next) {
   const { checkString } = require("../utils/validate-inputs");
   const uuid = checkString(req.params.id);
 
-  console.log(
-    "get-gameboard cleansed inputs, searching for gameboard uuid",
-    uuid
-  );
+  console.log("get-gameboard fetching gameboard", uuid);
+  const maxCacheLifetime = process.env.MAX_CACHE_LIFETIME;
+  const key = uuid + "-method-" + req.method + "-path-" + req.path;
 
-  const GameBoard = require("../models/bingoboardModel");
-  const foundGameboard = await GameBoard.findOne({
-    uuid: uuid,
-    isDeleted: false,
-  }).exec();
-
-  if (foundGameboard) {
-    const getWords = require("../route-handlers/get-words");
-    const { owner, category } = foundGameboard;
-    // console.log(
-    //   "get-gameboard recovered gameboard owner and category:",
-    //   owner,
-    //   category
-    // );
-    const wordList = await getWords(owner, category);
-    // console.log("get-gameboard wordList from get-words is", wordList);
+  if (cache[key] && Date.now() - cache[key].timestamp < maxCacheLifetime) {
+    console.log("get-gameboard cache HIT");
     res.locals.statusCode = 200;
-    res.locals.resultMsg = wordList;
   } else {
-    console.log("get-gameboard returning not found!");
-    res.locals.statusCode = 404;
-    res.locals.resultMsg = { message: "Ask your presenter for a new URL." };
+    const GameBoard = require("../models/bingoboardModel");
+    console.log("get-gameboard cache MISS");
+    const getWords = require("../route-handlers/get-words");
+    cache[key] = {};
+    cache[key].timestamp = timeStamper();
+    cache[key].data = await GameBoard.findOne({
+      uuid: uuid,
+      isDeleted: false,
+    })
+      .exec()
+      .then((gameboard) => {
+        const words = getWords(gameboard.owner, gameboard.category);
+        res.locals.statusCode = 200;
+        return words;
+      })
+      .catch((error) => {
+        console.log("get-gameboard returning not found!");
+        res.locals.statusCode = 404;
+        return "Ask your presenter for a new URL.";
+      });
   }
-
+  console.log("cache[key].data content:", cache[key].data);
+  res.locals.resultMsg = cache[key].data;
   next();
 }
 
