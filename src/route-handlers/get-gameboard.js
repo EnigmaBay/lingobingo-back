@@ -31,7 +31,7 @@ async function getGameboard(req, res, next) {
       .catch((error) => {
         console.log("get-gameboard returning not found!");
         res.locals.statusCode = 404;
-        return "Ask your presenter for a new URL.";
+        return { message: "Ask your presenter for a new URL." };
       });
   }
   // console.log("cache[key].data content:", cache[key].data);
