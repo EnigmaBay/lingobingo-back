@@ -17,40 +17,46 @@ In everyday terms:
 
 ## Status
 
-The API Server is in development.
+This API Server is in development.
 
 ## Dependencies
 
 - [X] NodeJS
 - [X] ExpressJS
 - [X] Java Web Tokens and Aync Key Sets
-- [X] Mongoose (MongoDB Client)
+- [X] Mongoose (MongoDB Client) v6.8+
+- [X] Cookie-parser
+- [X] CORS (configure for your specific environment)
+- [X] Auth0: JWT Bearer, JsonWebToken, and JWKS-RSA SDKs
+- [X] Dev: DotEnv for importing local environment variables
+- [X] NodeMon: Automate restarting service during development
 
 ## Implemented Technologies and Patterns
 
 - [X] REST-based server.
-- [X] CRUD functionality (Create and Read).
+- [X] CRUD functionality (Create, Read, Update, and Delete).
 - [X] Async/Await and Promises.
 - [X] Cookies.
-- [X] JWT Key Sets leveraged for authorization.
+- [X] JWT Keysets leveraged for authorization.
 - [X] Buffer for generating UUIDs.
 - [X] Various ExpressJS features including middleware, Router, and error handler.
+- [X] Caching of GET method calls.
+- [X] Presenter can edit existing words in their own categories.
+- [X] Presenter can remove existing words in their own categories.
+- [X] Presenter can generate a new gameboard.
+- [X] Presenter can remove existing gameboard.
+- [X] Authorization *not* required to get a "Gameboard" given a UUID.
 
-## Future Implementation
+## Planned Work
 
-- [ ] Remaining REST Endpoint Methods (Patch and Delete).
-- [ ] Remaining CRUD functionality (Update and Delete).
-- [ ] Caching of GET method calls.
-- [ ] Presenter can edit existing words in their own categories.
-- [ ] Presenter can remove existing words in their own categories.
-- [ ] Presenter can generate a new gameboard.
-- [ ] Presenter can remove existing gameboard.
+- [ ] Refactor code to enable testing functions individually.
+- [ ] Write tests!
 
 ## Participants
 
 Lead Developer: [Jon Rumsey](https://github.com/nojronatron).
 
-Develoepr: [Ryan Schafer](https://github.com/schaferyan).
+Developer: [Ryan Schafer](https://github.com/schaferyan).
 
 ## References and Resources
 
