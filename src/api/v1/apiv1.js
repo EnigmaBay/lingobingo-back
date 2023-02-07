@@ -62,7 +62,7 @@ router.post("/word", cookieValidator, async (req, res, next) => {
   if (res.locals.cookieResult === "Authorized" && category && word) {
     const addWord = require("../../route-handlers/add-new-word");
     const result = await addWord(req.cookies["useruuid"], category, word);
-    res.status(200).json({ message: result });
+    res.status(201).json({ message: result });
   }
 });
 
