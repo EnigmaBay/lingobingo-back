@@ -11,7 +11,11 @@ async function getGameboard(req, res, next) {
 
   if (cache[key] && Date.now() - cache[key].timestamp < maxCacheLifetime) {
     console.log("get-gameboard cache HIT");
-    res.locals.statusCode = 200;
+    if (Array.isArray(cache[key].data) && cache[key].data.length > 1) {
+      res.locals.statusCode = 200;
+    } else {
+      res.locals.statusCode = 404;
+    }
   } else {
     const GameBoard = require("../models/bingoboardModel");
     console.log("get-gameboard cache MISS");
