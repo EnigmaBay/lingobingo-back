@@ -1,28 +1,28 @@
 const Bingoboard = require("../models/bingoboardModel");
 const Presenter = require("../models/presenterModel");
 const { checkString } = require("../utils/validate-inputs");
-const timeStamper = require("../utils/time-stamper");
 
 async function deleteGameboard(req, res, next) {
   try {
     const owner = checkString(req.cookies["useruuid"]);
-    const gameboardUuid = checkString(req.body["uuid"]);
+    const category = checkString(req.body["category"]);
     const foundPresenter = await Presenter.findOne({
       uuid: owner,
-      deleted: false,
+      isDeleted: false,
     }).exec();
 
     if (!foundPresenter) {
-      res.locals.statusCode = 404; // todo: should be 500 server error?
+      res.locals.statusCode = 404;
       res.locals.resultMsg = "Not found.";
     } else {
+      const timeStamper = require("../utils/time-stamper");
       const timeStamp = timeStamper();
 
-      const foundGameboard = await Bingoboard.updateOne(
+      const updateGameboard = await Bingoboard.updateOne(
         {
-          uuid: gameboardUuid,
+          category: category,
           owner: owner,
-          idDeleted: false,
+          isDeleted: false,
         },
         {
           isDeleted: true,
@@ -30,23 +30,37 @@ async function deleteGameboard(req, res, next) {
         }
       );
 
-      if (foundGameboard.modifiedCount < 1) {
+      if (updateGameboard.modifiedCount < 1) {
         res.locals.statusCode = 404;
         res.locals.resultMsg = "Gameboard not found.";
       } else {
-        const existingGameboards = foundPresenter.bingoboards;
-        const updatedGameboards = [];
+        // gameboard was updated now the uuid is needed
+        const foundGameboard = await Bingoboard.findOne({
+          owner: owner,
+          category: category,
+          isDeleted: true,
+        }).exec();
 
-        existingGameboards.forEach((board) => {
-          if (board !== gameboardUuid) {
-            updatedGameboards.push(board);
-          }
-        });
+        if (foundGameboard) {
+          // updated gameboard was found
+          const gameboardUuid = foundGameboard["uuid"];
+          const existingGameboards = foundPresenter.bingoboards;
+          const updatedGameboards = [];
 
-        foundPresenter.bingoboards = updatedGameboards;
-        foundPresenter.save();
-        res.locals.statusCode = 200;
-        res.locals.resultMsg = "Gameboard removed.";
+          existingGameboards.forEach((board) => {
+            if (board !== gameboardUuid) {
+              updatedGameboards.push(board);
+            }
+          });
+
+          foundPresenter.bingoboards = updatedGameboards;
+          foundPresenter.save();
+          res.locals.statusCode = 200;
+          res.locals.resultMsg = "Gameboard removed.";
+        } else {
+          // gameboard was not found this is probably an error condition
+          throw new Error("Gameboard was updated but could not be found?!?");
+        }
       }
     }
   } catch (error) {
