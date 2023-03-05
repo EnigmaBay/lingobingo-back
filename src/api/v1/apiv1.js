@@ -30,20 +30,13 @@ router.get("/words/:category", cookieValidator, async (req, res, next) => {
   console.log("GET words/:category params.id", req.params.category);
   const category = req.params.category;
 
-  if (res.locals.cookieResult !== "Authorized") {
-    res.status(401).json({ message: "Unauthorized" });
-  }
-
   if (category.length === 0) {
-    const msg = res.locals.cookieResult;
     res.status(400).json({ message: "Missing category" });
-  }
-
-  if (res.locals.cookieResult === "Authorized" && category.length >= 1) {
+  } else {
     const getWords = require("../../route-handlers/get-words");
     const cat = category.trim();
     const wordList = await getWords(req.cookies["useruuid"], cat);
-    res.status(200).json(wordList);
+    res.status(200).json({ "words": wordList});
   }
 });
 
@@ -62,7 +55,7 @@ router.post("/word", cookieValidator, async (req, res, next) => {
   if (res.locals.cookieResult === "Authorized" && category && word) {
     const addWord = require("../../route-handlers/add-new-word");
     const result = await addWord(req.cookies["useruuid"], category, word);
-    res.status(201).json({ message: result });
+    res.status(201).json({ newWord: result });
   }
 });
 
