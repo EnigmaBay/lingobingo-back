@@ -82,31 +82,6 @@ router.patch("/word", cookieValidator, async (req, res, next) => {
       .status(res.locals.statusCode)
       .json({ "New word": `${res.locals.newWord}` });
   }
-  // if (res.locals.cookieResult !== "Authorized") {
-  //   res.status(401).json({ message: "Unauthorized" });
-  // }
-
-  // const { category, word, newWord } = req.body;
-  // console.log("PATCH Word category, word, newWord", category, word, newWord);
-
-  // if (!category || !word || !newWord) {
-  //   res.status(400).json({ message: "Missing body" });
-  // }
-
-  // if (res.locals.cookieResult === "Authorized") {
-  //   const updateWord = require("../../route-handlers/update-word");
-  //   const result = await updateWord(req, res, category, word, newWord);
-  //   if (res.locals.statusCode && res.locals.resultMsg) {
-  //     const statusCode = res.locals.statusCode;
-  //     const resultMsg = res.locals.resultMsg;
-  //     res.status(statusCode).json(resultMsg);
-  //   } else {
-  //     res.status(200).json(result);
-  //   }
-  // } else {
-  //   console.log("An error occurred in PATCH /word");
-  //   res.status(500);
-  // }
 });
 
 router.delete("/word", cookieValidator, async (req, res, next) => {

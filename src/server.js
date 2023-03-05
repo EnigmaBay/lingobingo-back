@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const cookieParser = require("cookie-parser");
-const cors = require('cors');
+const cors = require("cors");
 
 require("dotenv").config();
 const PORT = process.env.PORT || 3002;
@@ -27,7 +27,7 @@ app.all("*", (req, res) => {
 
 // error handler middleware defined after last app.use and route calls
 app.use((err, req, res, next) => {
-  console.error('err.stack:', err.stack);
+  console.error("err.stack:", err.stack);
 
   if (res.headersSent) {
     console.log(
@@ -44,11 +44,11 @@ app.use((err, req, res, next) => {
 
     let statusCode = 400;
 
-    if (res.locals.statusCode !== undefined){
+    if (res.locals.statusCode !== undefined) {
       statusCode = res.locals.statusCode;
     }
 
-    console.log('default error handler called by next ==>>');
+    console.log("default error handler called by next ==>>");
     res.status(statusCode).json({ message: err });
   }
 });
@@ -56,4 +56,3 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}\n---------------------------`);
 });
-``
