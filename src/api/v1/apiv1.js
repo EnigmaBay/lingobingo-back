@@ -117,7 +117,7 @@ router.post(
   async (req, res, next) => {
     const statusCode = res.locals.statusCode;
     const resultMsg = res.locals.resultMsg;
-    res.status(statusCode).json({ message: resultMsg });
+    res.status(statusCode).json({ gameboardUri: resultMsg });
   }
 );
 
