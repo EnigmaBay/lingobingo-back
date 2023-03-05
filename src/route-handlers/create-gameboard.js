@@ -40,6 +40,13 @@ async function createGameboard(req, res, next) {
         category: category,
       });
     } else {
+      // A gameboard already exists
+      // timestamp and force isDeleted flag to false
+      const timeStamper = require('../utils/time-stamper');
+      const timeStamp = timeStamper();
+      foundGameboard["isDeleted"] = false;
+      foundGameboard["updated"] = timeStamp;
+      await foundGameboard.save();
       gameboardUuid = foundGameboard["uuid"];
     }
   } catch (error) {
