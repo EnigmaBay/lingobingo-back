@@ -27,7 +27,7 @@ app.all("*", (req, res) => {
 
 // error handler middleware defined after last app.use and route calls
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('err.stack:', err.stack);
 
   if (res.headersSent) {
     console.log(
@@ -48,6 +48,7 @@ app.use((err, req, res, next) => {
       statusCode = res.locals.statusCode;
     }
 
+    console.log('default error handler called by next ==>>');
     res.status(statusCode).json({ message: err });
   }
 });
