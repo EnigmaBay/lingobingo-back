@@ -1,12 +1,15 @@
 const express = require("express");
 const app = express();
 const cookieParser = require("cookie-parser");
+const cors = require('cors');
 
 require("dotenv").config();
 const PORT = process.env.PORT || 3002;
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(cors());
+
 app.disable("x-powered-by");
 
 app.get("/", (req, res) => {
@@ -38,10 +41,18 @@ app.use((err, req, res, next) => {
     } else {
       errMsg = err.message;
     }
-    res.status(400).json({ message: errMsg });
+
+    let statusCode = 400;
+
+    if (res.locals.statusCode !== undefined){
+      statusCode = res.locals.statusCode;
+    }
+
+    res.status(statusCode).json({ message: err });
   }
 });
 
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}\n---------------------------`);
 });
+``
