@@ -28,25 +28,22 @@ async function validateCookies(req, res, next) {
           sameSite: "Strict",
         });
         console.log("cookie-validator uuid cookie set!");
-
         res.locals.cookieResult = "Authorized";
         console.log("cookie-validator set authorized, now returning.");
       } else {
-        res.locals.cookieResult = "Unauthorized";
         console.log("Cookie Validator: Invalid cookies in request.");
-        res.status(401);
+        res.locals.statusCode = 401;
         next("Invalid cookies in request.");
       }
     } else {
-      // res.locals.cookieResult = 'Unauthorized';
       console.log("Cookie Validator: Unrecognized cookies in request.");
-      res.status(401);
+      res.locals.statusCode = 401;
       next("Unrecognized cookies in request.");
     }
   } catch (err) {
     console.log("cookie-validator threw", err.message);
     res.locals.cookieResult = "Unauthorized";
-    res.status(500);
+    res.locals.statusCode = 500;
     next("err.message");
   }
   next();
