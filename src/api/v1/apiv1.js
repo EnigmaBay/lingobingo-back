@@ -99,23 +99,21 @@ router.patch("/word", cookieValidator, async (req, res, next) => {
 });
 
 router.delete("/word", cookieValidator, async (req, res, next) => {
-  console.log("DELETE Word for user", req.cookies["useruuid"]);
   const { category, word } = req.body;
-  console.log("DELETE Word category, word", category, word);
 
   if (!category || !word) {
     res.status(400).json({ message: "Missing body" });
   } else {
+    res.locals.category = category;
+    res.locals.word = word;
     const removeWord = require("../../route-handlers/remove-word");
-    const result = await removeWord(req, res, category, word);
-
-    if (res.locals.statusCode && res.locals.resultMsg) {
-      const statusCode = res.locals.statusCode;
-      const resultMsg = res.locals.resultMsg;
-      res.status(statusCode).json(resultMsg);
-    } else {
-      res.status(200).json(result);
-    }
+    removeWord(req, res, next)
+      .then(() =>
+        res
+          .status(res.locals.statusCode)
+          .json({ message: `${res.locals.resultMsg}` })
+      )
+      .catch(() => console.log("delete word route catch error ==>"));
   }
 });
 
