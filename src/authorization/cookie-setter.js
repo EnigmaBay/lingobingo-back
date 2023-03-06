@@ -31,7 +31,7 @@ async function cookieSetter(req, res, next) {
           }
         } else {
           // user uuid not already in database so go ahead and register it
-          const addResult = await store(presenterUuid);
+          await store(presenterUuid);
           set(res, req.user.nickname, presenterUuid, maxCookieAge); // set new cookie
           res.locals.statusCode = 201;
           res.locals.resultMsg = "Authorized.";
@@ -40,9 +40,9 @@ async function cookieSetter(req, res, next) {
         console.log(
           "cookie-setter detected missing property see following message(s)..."
         );
-        console.log("nickname:", user.nickname);
-        console.log("email:", user.email);
-        console.log("email verified:", user.email_verified);
+        console.log("nickname:", req.user.nickname);
+        console.log("email:", req.user.email);
+        console.log("email verified:", req.user.email_verified);
         res.locals.statusCode = 403;
         res.locals.resultMsg = "Requires Email Verification.";
       }

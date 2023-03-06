@@ -20,13 +20,13 @@ db.once("open", function () {
   console.log("Mongoose is connected.");
 });
 
-router.get("/authorize", authorize, cookieSetter, async (req, res, next) => {
+router.get("/authorize", authorize, cookieSetter, async (req, res) => {
   const statusCode = res.locals.statusCode;
   const resultMsg = res.locals.resultMsg;
   res.status(statusCode).json({ message: resultMsg });
 });
 
-router.get("/words/:category", cookieValidator, async (req, res, next) => {
+router.get("/words/:category", cookieValidator, async (req, res) => {
   console.log("GET words/:category params.id", req.params.category);
   const category = req.params.category;
 
@@ -119,7 +119,7 @@ router.delete("/word", cookieValidator, async (req, res, next) => {
   }
 });
 
-router.get("/gameboard/:id", getGameboard, async (req, res, next) => {
+router.get("/gameboard/:id", getGameboard, async (req, res) => {
   const statusCode = res.locals.statusCode;
   const resultMsg = res.locals.resultMsg;
   res.status(statusCode).json(resultMsg);
@@ -130,7 +130,7 @@ router.post(
   cookieValidator,
   createGameboard,
   setGameboard,
-  async (req, res, next) => {
+  async (req, res) => {
     const statusCode = res.locals.statusCode;
     const resultMsg = res.locals.resultMsg;
     res.status(statusCode).json({ gameboardUri: resultMsg });
@@ -141,7 +141,7 @@ router.delete(
   "/gameboard",
   cookieValidator,
   deleteGameboard,
-  async (req, res, next) => {
+  async (req, res) => {
     const statusCode = res.locals.statusCode;
     const resultMsg = res.locals.resultMsg;
     res.status(statusCode).json({ message: resultMsg });

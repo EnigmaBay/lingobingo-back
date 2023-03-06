@@ -3,6 +3,7 @@ const app = express();
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
+// eslint-disable-next-line node/no-unpublished-require
 require("dotenv").config();
 const PORT = process.env.PORT || 3002;
 
@@ -11,10 +12,6 @@ app.use(cookieParser());
 app.use(cors());
 
 app.disable("x-powered-by");
-
-app.get("/", (req, res) => {
-  res.status(200).json({ message: "ehlo werld!" });
-});
 
 const apiv1 = require("./api/v1/apiv1");
 app.use("/api/v1", apiv1);
@@ -35,11 +32,10 @@ app.use((err, req, res, next) => {
     );
     return next(err);
   } else {
-    let errMsg;
     if (!err) {
-      errMsg = "Custom error handler return.";
+      console.log("Custom error handler return.");
     } else {
-      errMsg = err.message;
+      console.log(err.message);
     }
 
     let statusCode = 400;

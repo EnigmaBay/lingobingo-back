@@ -7,7 +7,7 @@ async function addBulkWords(req, res, next) {
   const { category, words } = req.body;
 
   if (typeof category !== "string" || category.length < 2) {
-    statusCode = 400;
+    res.locals.statusCode = 400;
     next("Category is empty or invalid");
   } else {
     // todo: find end of if-else code block
@@ -17,13 +17,13 @@ async function addBulkWords(req, res, next) {
     const bulkWordArr = cleansedWordList.split(",");
 
     if (!Array.isArray(bulkWordArr)) {
-      statusCode = 400;
+      res.locals.statusCode = 400;
       next("Words not comma separated");
     } else {
 
       console.log("addBulkWords bulkWordArr, size:", bulkWordArr, bulkWordArr.length);
       if (bulkWordArr.length < 24) {
-        statusCode = 400;
+        res.locals.statusCode = 400;
         next("Not enough words (need at least 24)");
       } else {
 
