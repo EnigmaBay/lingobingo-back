@@ -27,7 +27,7 @@ app.all("*", (req, res) => {
 
 // error handler middleware defined after last app.use and route calls
 app.use((err, req, res, next) => {
-  console.error("err.stack:", err.stack);
+  console.error("custom error handler received err:", err);
 
   if (res.headersSent) {
     console.log(
