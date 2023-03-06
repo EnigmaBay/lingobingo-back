@@ -8,7 +8,6 @@ const getGameboard = require("../../route-handlers/get-gameboard");
 const createGameboard = require("../../route-handlers/create-gameboard");
 const setGameboard = require("../../route-handlers/set-gameboard.js");
 const deleteGameboard = require("../../route-handlers/delete-gameboard");
-const { validateInputs } = require("../../utils/validate-inputs");
 
 // maintain strictQuery behavior in Mongoose 7 (https://mongoosejs.com/docs/guide.html#strictQuery)
 mongoose.set("strictQuery", true);
