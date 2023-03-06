@@ -8,6 +8,7 @@ const getGameboard = require("../../route-handlers/get-gameboard");
 const createGameboard = require("../../route-handlers/create-gameboard");
 const setGameboard = require("../../route-handlers/set-gameboard.js");
 const deleteGameboard = require("../../route-handlers/delete-gameboard");
+const { validateInputs } = require("../../utils/validate-inputs");
 
 // maintain strictQuery behavior in Mongoose 7 (https://mongoosejs.com/docs/guide.html#strictQuery)
 mongoose.set("strictQuery", true);
@@ -55,6 +56,22 @@ router.post("/word", cookieValidator, async (req, res, next) => {
   res
     .status(res.locals.statusCode)
     .json({ "New word": `${res.locals.newWord}` });
+});
+
+router.post("/words", cookieValidator, async (req, res, next) =>{
+  const { category, words } = req.body;
+  console.log('POST words category, words:', category, words);
+  const addBulkWords = require("../../route-handlers/add-bulk-words");
+  addBulkWords(req, res, next)
+  .then((results) => {
+    console.log("insertMany results count:", results.length);
+    res.status(201).json({ "bulk insert": "succeeded" });
+  })
+  .catch((err) => {
+    console.log("insertMany error:", err);
+    res.locals.statusCode = 400;
+    next(err);
+  });
 });
 
 router.get("/categories", cookieValidator, async (req, res, next) => {
