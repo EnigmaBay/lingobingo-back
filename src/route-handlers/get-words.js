@@ -10,6 +10,7 @@ function getWords(uuid, lingoCategory) {
 
   const owner = checkString(uuid);
   const category = checkString(lingoCategory);
+  // todo: fix cache so GET bingoboard will cache regardless of cookies
   const cache = require("../utils/cache");
   const maxCacheLifetime = process.env.MAX_CACHE_LIFETIME;
   const key = uuid + "-category-" + lingoCategory;
