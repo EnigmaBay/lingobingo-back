@@ -17,7 +17,7 @@ async function setGameboard(req, res, next) {
       res.locals.resultMsg = "Unable to validate Presenter.";
       return;
     } else {
-      console.log("set-gameboard found existingPresenter:", existingPresenter["uuid"]);
+      console.log("set-gameboard found existingPresenter.");
     }
 
     const BingoBoard = require("../models/bingoboardModel");
@@ -32,7 +32,10 @@ async function setGameboard(req, res, next) {
       res.locals.resultMsg = "Unable to retreive expected Bingoboard.";
       return;
     } else {
-      console.log("set-gameboard found existingGameboard:", existingGameboard["uuid"]);
+      console.log(
+        "set-gameboard found existingGameboard:",
+        existingGameboard["uuid"]
+      );
     }
 
     const gameboardId = existingGameboard.uuid;
@@ -49,7 +52,7 @@ async function setGameboard(req, res, next) {
     const timeStamper = require("../utils/time-stamper");
     const timeStamp = timeStamper();
     existingPresenter.updated = timeStamp;
-    const updatedPresenter = await existingPresenter.save();
+    await existingPresenter.save();
 
     const hostname = req.hostname;
     const port = process.env.PORT;
@@ -67,7 +70,6 @@ async function setGameboard(req, res, next) {
     res.locals.resultMsg = "setting gameboard to presenter profile failed.";
     next(error);
   }
-  // return;
 }
 
 module.exports = setGameboard;
