@@ -1,18 +1,29 @@
 async function validateCookies(req, res, next) {
-  const { validateInputs } = require("../utils/validate-inputs");
+  const {
+    checkString,
+    validateEncodedArg,
+  } = require("../utils/validate-inputs");
   res.locals.cookieResult = "Unauthorized";
 
-  const cookiesDefined = validateInputs(
-    req.cookies["useruuid"],
-    req.cookies["username"]
+  const cookiesDefined =
+    validateEncodedArg(req.cookies["useruuid"]) &&
+    validateEncodedArg(req.cookies["username"]);
+
+  console.log(
+    "validateCookies ran validateEncodedArg (useruuid, username) and received:",
+    cookiesDefined
   );
 
   try {
     if (cookiesDefined) {
       console.log("cookie-validator cookiesDefined was true.");
-      const username = req.cookies["username"];
+      const username = checkString(req.cookies["username"]);
       const { validate } = require("../utils/presenter-utils");
       const presenter = await validate(req.cookies["useruuid"]);
+      console.log(
+        "cookie-validator: validate(presenteruuid) returned:",
+        presenter
+      );
 
       if (presenter["uuid"] === req.cookies["useruuid"]) {
         const presenterUuid = presenter["uuid"];
@@ -29,7 +40,6 @@ async function validateCookies(req, res, next) {
         });
         console.log("cookie-validator uuid cookie set!");
         res.locals.cookieResult = "Authorized";
-        console.log("cookie-validator set authorized, now returning.");
       } else {
         console.log("Cookie Validator: Invalid cookies in request.");
         res.locals.statusCode = 401;

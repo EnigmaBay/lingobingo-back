@@ -6,12 +6,8 @@ async function cookieSetter(req, res, next) {
     } else {
       if (req.user.nickname && req.user.email && req.user.email_verified) {
         const { generateUuid, store } = require("../utils/presenter-utils");
-        const presenterUuid = await generateUuid(
-          req.user.nickname,
-          req.user.email,
-          req.user.name
-        );
-
+        const concatenatedArgs = `${req.user.nickname}${req.user.email}${req.user.name}`;
+        const presenterUuid = await generateUuid(concatenatedArgs);
         const maxCookieAge = process.env.MAX_COOKIE_AGE;
         const Presenter = require("../models/presenterModel");
         const findResult = await Presenter.findOne({
@@ -25,7 +21,10 @@ async function cookieSetter(req, res, next) {
             res.locals.statusCode = 200;
             res.locals.resultMsg = "Authorized.";
           } else {
-            console.log("presenter has been blocked:",req.user.email, presenterUuid);
+            console.log(
+              "presenter has been blocked:",
+              presenterUuid
+            );
             res.locals.statusCode = 403;
             res.locals.resultMsg = "Unauthorized.";
           }
@@ -61,13 +60,10 @@ function set(res, username, presenterUuid, maxCookieAge) {
     maxAge: maxCookieAge,
     sameSite: "Strict",
   });
-  console.log("cookie-setter username cookie set", username);
-
   res.cookie("useruuid", presenterUuid, {
     maxAge: maxCookieAge,
     sameSite: "Strict",
   });
-  console.log("cookie-setter presenter uuid cookie set", presenterUuid);
 }
 
 module.exports = cookieSetter;

@@ -1,5 +1,5 @@
 const { checkString } = require("../utils/validate-inputs");
-const generateUuid = require("../utils/gameboard-uuid-generator");
+const { generateUuid } = require("../utils/presenter-utils");
 const getWords = require("./get-words");
 
 async function createGameboard(req, res, next) {
@@ -30,8 +30,11 @@ async function createGameboard(req, res, next) {
     }).exec();
 
     if (!foundGameboard) {
+      console.log(
+        "create-gameboard did not find an existing gameboard in the db."
+      );
       const concatString = `${presenterUuid}${cat}`;
-      gameboardUuid = generateUuid(concatString);
+      gameboardUuid = await generateUuid(concatString);
 
       // create a gameboard
       await GameBoard.create({
@@ -42,7 +45,10 @@ async function createGameboard(req, res, next) {
     } else {
       // A gameboard already exists
       // timestamp and force isDeleted flag to false
-      const timeStamper = require('../utils/time-stamper');
+      console.log(
+        "create-gameboard: gameboard already exists. Updating flag and timestamp."
+      );
+      const timeStamper = require("../utils/time-stamper");
       const timeStamp = timeStamper();
       foundGameboard["isDeleted"] = false;
       foundGameboard["updated"] = timeStamp;
