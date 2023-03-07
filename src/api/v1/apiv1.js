@@ -36,7 +36,7 @@ router.get("/words/:category", cookieValidator, async (req, res) => {
     const getWords = require("../../route-handlers/get-words");
     const cat = category.trim();
     const wordList = await getWords(req.cookies["useruuid"], cat);
-    res.status(200).json({ "words": wordList});
+    res.status(200).json({ words: wordList });
   }
 });
 
@@ -57,34 +57,38 @@ router.post("/word", cookieValidator, async (req, res, next) => {
     .json({ "New word": `${res.locals.newWord}` });
 });
 
-router.post("/words", cookieValidator, async (req, res, next) =>{
+router.post("/words", cookieValidator, async (req, res, next) => {
   const { category, words } = req.body;
-  console.log('POST words category, words:', category, words);
+  console.log("POST words category, words:", category, words);
   const addBulkWords = require("../../route-handlers/add-bulk-words");
   addBulkWords(req, res, next)
-  .then((results) => {
-    console.log("insertMany results count:", results.length);
-    res.status(201).json({ "bulk insert": "succeeded" });
-  })
-  .catch((err) => {
-    console.log("insertMany error:", err);
-    res.locals.statusCode = 400;
-    next(err);
-  });
+    .then((results) => {
+      console.log("insertMany results count:", results.length);
+      res.status(201).json({ "bulk insert": "succeeded" });
+    })
+    .catch((err) => {
+      console.log("insertMany error:", err);
+      res.locals.statusCode = 400;
+      next(err);
+    });
 });
 
 router.get("/categories", cookieValidator, async (req, res, next) => {
   const getCategories = require("../../route-handlers/get-categories");
   const result = await getCategories(req, res, next);
-  console.log('categories: getCategories returned result, result.length',result, result.length);
+  console.log(
+    "categories: getCategories returned result, result.length",
+    result,
+    result.length
+  );
   const resultMsg = result;
-  const statusCode = result.length > 0 && 200 || 404;
+  const statusCode = (result.length > 0 && 200) || 404;
   res.status(statusCode).json(resultMsg);
 });
 
 router.patch("/word", cookieValidator, async (req, res, next) => {
-  console.log("PATCH Word for user", req.cookies["useruuid"]);
   const { category, word, newWord } = req.body;
+  console.log("PATCH Word for user: word, new word =>", word, newWord);
 
   if (!category || !word || !newWord) {
     res.status(400).json({ message: "Missing body" });
@@ -115,7 +119,10 @@ router.delete("/word", cookieValidator, async (req, res, next) => {
           .status(res.locals.statusCode)
           .json({ message: `${res.locals.resultMsg}` })
       )
-      .catch(() => console.log("delete word route catch error ==>"));
+      .catch((error) => {
+        console.log("delete word route catch error:", error);
+        res.status(400).json({ message: "Unable to delete word." });
+      });
   }
 });
 
