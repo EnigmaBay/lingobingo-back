@@ -1,5 +1,5 @@
-const Presenter = require("../models/presenterModel");
-const { Buffer } = require("node:buffer");
+const Presenter = require('../models/presenterModel');
+const { Buffer } = require('node:buffer');
 
 // get presenter based on authorization token information
 async function generateUuid(concatenatedString) {
@@ -8,10 +8,10 @@ async function generateUuid(concatenatedString) {
       return 500;
     } else {
       const buf = Buffer.from(concatenatedString);
-      return buf.toString("base64url");
+      return buf.toString('base64url');
     }
   } catch (error) {
-    console.error("generateUuid catch block triggered, returning 500");
+    console.error('generateUuid catch block triggered, returning 500');
     return 500;
   }
 }
@@ -20,7 +20,7 @@ async function generateUuid(concatenatedString) {
 function store(presenterUuid) {
   const result = Presenter.findOne({
     uuid: presenterUuid,
-    deleted: false,
+    isDeleted: false,
   })
     .exec()
     .then((dbFindResult) => {
@@ -33,22 +33,22 @@ function store(presenterUuid) {
           if (createResult) {
             return Promise.resolve(createResult.uuid);
           } else {
-            console.error("presenter create failed, rejecting request.");
-            return Promise.reject("Failed to create.");
+            console.error('presenter create failed, rejecting request.');
+            return Promise.reject('Failed to create.');
           }
         });
       }
     })
-    .catch((error) => console.error("presenter store failed. error:", error));
+    .catch((error) => console.error('presenter store failed. error:', error));
 
   return result;
 }
 
 async function validate(presenterUuid) {
-  const Presenter = require("../models/presenterModel");
+  const Presenter = require('../models/presenterModel');
   const result = await Presenter.findOne({
     uuid: presenterUuid,
-    deleted: false,
+    isDeleted: false,
   }).exec();
   return result;
 }
