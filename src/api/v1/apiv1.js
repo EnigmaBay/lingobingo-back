@@ -7,7 +7,7 @@ const createGameboard = require('../../route-handlers/create-gameboard');
 const setGameboard = require('../../route-handlers/set-gameboard.js');
 const deleteGameboard = require('../../route-handlers/delete-gameboard');
 const { auth } = require('express-oauth2-jwt-bearer');
-const decodeJsonBody = require('../../authorization/decode-json-body');
+const decodeJsonBody = require('../../authorization/decode-auth-params');
 const checkPresenter = require('../../authorization/check-presenter');
 const cookieSetter = require('../../authorization/new-cookie-setter');
 
