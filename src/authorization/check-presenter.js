@@ -9,6 +9,7 @@ async function checkPresenter(req, res, next) {
   const presenterUuid = await generateUuid(concatenatedArgs);
   const presenter = await Presenter.findOne({ uuid: presenterUuid }).exec();
   if (presenter === null) {
+    console.log('check-presenter: creating new presenter, uuid', presenterUuid);
     Presenter.create({
       uuid: presenterUuid,
     })
@@ -18,6 +19,10 @@ async function checkPresenter(req, res, next) {
     console.log('Presenter is blocked, uuid:', presenterUuid);
     next('Unauthorized.');
   } else {
+    console.log(
+      'checkPresenter checks passed for presenter uuid',
+      presenter.uuid
+    );
     res.locals.presenterUuid = presenter.uuid;
     next();
   }
