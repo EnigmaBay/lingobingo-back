@@ -1,10 +1,11 @@
 const { Buffer } = require('node:buffer');
 
-async function decodeAuthParams(req, res, next) {
-  console.log('decodeAuthParams received', req.params);
-  const payload = req.params.payload;
+async function decodeAuthJson(req, res, next) {
+  console.log('decodeAuthJson received', req.body.payload);
+  const payload = req.body.payload;
   console.log('received encodedPayload', payload);
   const decodedPayload = Buffer.from(payload, 'base64url').toString('utf8');
+  console.log('decodeJson() decodedPayload', decodedPayload);
   // nickname, email, username, emailVerified
   const payloadArr = decodedPayload.split(',');
   console.log('payloadArr', payloadArr);
@@ -15,12 +16,9 @@ async function decodeAuthParams(req, res, next) {
     console.log('verification failed');
     next('Unverified email.');
   } else {
-    console.log(
-      'email verification check passed for user',
-      res.locals.username
-    );
+    console.log('verification passed for username', res.locals.username);
     next();
   }
 }
 
-module.exports = decodeAuthParams;
+module.exports = decodeAuthJson;
