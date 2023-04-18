@@ -1,19 +1,22 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const lingowordSchema = new mongoose.Schema({
   // mongoose sets its own _id
   category: {
     type: String,
+    required: true,
     min: 2,
     max: 30,
   },
   word: {
     type: String,
+    required: true,
     min: 2,
     max: 30,
   },
   owner: {
     type: String,
+    required: true,
     min: 12,
     max: 100,
   }, // will match a user id with this word and category
@@ -31,6 +34,6 @@ const lingowordSchema = new mongoose.Schema({
   },
 });
 
-const LingoWord = mongoose.model("LingoWords", lingowordSchema);
+const LingoWord = mongoose.model('LingoWords', lingowordSchema);
 
 module.exports = LingoWord;
