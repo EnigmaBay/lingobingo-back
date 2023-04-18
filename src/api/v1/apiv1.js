@@ -7,9 +7,8 @@ const createGameboard = require('../../route-handlers/create-gameboard');
 const setGameboard = require('../../route-handlers/set-gameboard.js');
 const deleteGameboard = require('../../route-handlers/delete-gameboard');
 const { auth } = require('express-oauth2-jwt-bearer');
-const decodeJsonBody = require('../../authorization/decode-auth-params');
+const decodeAuthParams = require('../../authorization/decode-auth-params');
 const checkPresenter = require('../../authorization/check-presenter');
-const cookieSetter = require('../../authorization/new-cookie-setter');
 
 // maintain strictQuery behavior in Mongoose 7 (https://mongoosejs.com/docs/guide.html#strictQuery)
 mongoose.set('strictQuery', true);
@@ -30,84 +29,100 @@ const checkJwt = auth({
 router.get(
   '/authorize/:payload',
   checkJwt,
-  decodeJsonBody,
+  decodeAuthParams,
   checkPresenter,
-  cookieSetter,
   (req, res, next) => {
     res.status(200).json({ message: 'Authorized.' });
   }
 );
 
-router.get('/words/:category', cookieValidator, async (req, res) => {
-  console.log('GET words/:category params.id', req.params.category);
-  const category = req.params.category;
+router.get(
+  '/words/:category/:payload',
+  checkJwt,
+  decodeAuthParams,
+  checkPresenter,
+  async (req, res) => {
+    console.log(
+      'GET words/:category/:payload',
+      req.params.category,
+      req.params.payload
+    );
+    const category = req.params.category;
+    // const payload = req.params.payload;
 
-  if (category.length === 0) {
-    res.status(400).json({ message: 'Missing category' });
-  } else {
-    const getWords = require('../../route-handlers/get-words');
-    const cat = category.trim();
-    const wordList = await getWords(req.cookies['useruuid'], cat);
-    res.status(200).json({ words: wordList });
+    if (category.length === 0) {
+      res.status(400).json({ message: 'Missing category' });
+    } else {
+      const getWords = require('../../route-handlers/get-words');
+      const cat = category.trim();
+      const uuid = res.locals.presenterUuid;
+      const wordList = await getWords(uuid, cat);
+      res.status(200).json({ wordList });
+    }
   }
-});
+);
 
-router.post('/word', cookieValidator, async (req, res, next) => {
-  const { category, word } = req.body;
-  console.log('POST word body', category, word);
+router.post(
+  '/word/:payload',
+  checkJwt,
+  decodeAuthParams,
+  checkPresenter,
+  async (req, res, next) => {
+    const { category, word } = req.body;
+    console.log('POST word body', req.body);
 
-  if (!category || !word) {
-    res.status(400).json({ message: 'Missing body' });
+    if (!category || !word) {
+      res.status(400).json({ message: 'Missing body' });
+    }
+    res.locals.word = word;
+    res.locals.category = category;
+    res.locals.newWord = word;
+    const addWord = require('../../route-handlers/updadd-word');
+    await addWord(req, res, next);
+    const addWordResponse = res.locals.newWord;
+    res.status(res.locals.statusCode).json(addWordResponse);
   }
-  res.locals.word = word;
-  res.locals.category = category;
-  res.locals.newWord = word;
-  const addWord = require('../../route-handlers/updadd-word');
-  await addWord(req, res, next);
-  res
-    .status(res.locals.statusCode)
-    .json({ 'New word': `${res.locals.newWord}` });
-});
+);
 
-router.post('/words', cookieValidator, async (req, res, next) => {
-  const { category, words } = req.body;
-  console.log('POST words category, words:', category, words);
-  const addBulkWords = require('../../route-handlers/add-bulk-words');
-  addBulkWords(req, res, next)
-    .then((results) => {
-      console.log('insertMany results count:', results.length);
-      res.status(201).json({ 'bulk insert': 'succeeded' });
-    })
-    .catch((err) => {
-      console.log('insertMany error:', err);
-      res.locals.statusCode = 400;
-      next(err);
-    });
-});
+router.post(
+  '/words/:payload',
+  checkJwt,
+  decodeAuthParams,
+  checkPresenter,
+  async (req, res, next) => {
+    console.log('POST words body', req.body);
+    const addBulkWords = require('../../route-handlers/add-bulk-words');
+    addBulkWords(req, res, next)
+      .then((results) => {
+        console.log('insertMany results count:', results.length);
+        res.status(201).json('succeeded');
+      })
+      .catch((err) => {
+        console.log('insertMany error:', err);
+        res.locals.statusCode = 400;
+        next(err);
+      });
+  }
+);
 
-// const checkScopes = requiredScopes('read:categories');
-
-// router.get(
-//   '/categories',
-//   auth,
-//   checkScopes,
-//   cookieValidator,
-//   function (req, res) {
-//     res.json(['authorized', 'categories', 'route', 'access', 'permitted!']);
-//   }
-// );
-router.get('/categories', cookieValidator, async (req, res, next) => {
-  const getCategories = require('../../route-handlers/get-categories');
-  const result = await getCategories(req, res, next);
-  console.log(
-    'categories: getCategories returned result, result.length',
-    result,
-    result.length
-  );
-  const resultMsg = result;
-  const statusCode = (result.length > 0 && 200) || 404;
-  res.status(statusCode).json(resultMsg);
-});
+router.get(
+  '/categories/:payload',
+  checkJwt,
+  decodeAuthParams,
+  checkPresenter,
+  async (req, res, next) => {
+    const getCategories = require('../../route-handlers/get-categories');
+    const result = await getCategories(req, res);
+    console.log(
+      'categories: getCategories returned result, result.length',
+      result,
+      result.length
+    );
+    const resultMsg = result;
+    const statusCode = (result.length > 0 && 200) || 404;
+    res.status(statusCode).json(resultMsg);
+  }
+);
 
 router.patch('/word', cookieValidator, async (req, res, next) => {
   const { category, word, newWord } = req.body;
