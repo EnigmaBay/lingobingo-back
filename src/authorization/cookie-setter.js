@@ -1,34 +1,73 @@
-function cookieSetter(req, res, next) {
-  res.locals.cookieResult = false;
-  res.status(500);
-
-  // test if presenterUuid is set and if not then find or create authenticated Presenter
+async function cookieSetter(req, res, next) {
   try {
-    if (res.locals.presenterUuid !== undefined && res.locals.authenticated) {
-      const userUuid = res.locals.presenterUuid;
-      const uuidMatches = [...userUuid.matchAll(/([g-zG-Z])/g)];
+    if (!req.user) {
+      res.locals.statusCode = 401;
+      res.locals.resultMsg = "Unauthorized.";
+    } else {
+      if (req.user.nickname && req.user.email && req.user.email_verified) {
+        const { generateUuid, store } = require("../utils/presenter-utils");
+        const presenterUuid = await generateUuid(
+          req.user.nickname,
+          req.user.email,
+          req.user.name
+        );
 
-      // hex values do not include alpha characters g through z
-      if (uuidMatches.length === 0) {
-        if (userUuid.split("").length > 29) {
-          res.cookie("useruuid", userUuid, {
-            maxAge: process.env.MAX_COOKIE_AGE,
-            sameSite: 'Strict'
-          });
-          res.cookie("username", req.user.given_name, {
-            maxAge: process.env.MAX_COOKIE_AGE,
-            sameSite: 'Strict'
-          });
-          res.status(200);
-          res.locals.cookieResult = true;
+        const maxCookieAge = process.env.MAX_COOKIE_AGE;
+        const Presenter = require("../models/presenterModel");
+        const findResult = await Presenter.findOne({
+          uuid: presenterUuid,
+        }).exec();
+
+        if (findResult) {
+          if (!findResult.isDeleted) {
+            res.locals.presenterUuid = presenterUuid;
+            set(res, req.user.nickname, presenterUuid, maxCookieAge); // set new cookie
+            res.locals.statusCode = 200;
+            res.locals.resultMsg = "Authorized.";
+          } else {
+            console.log("presenter has been blocked:",req.user.email, presenterUuid);
+            res.locals.statusCode = 403;
+            res.locals.resultMsg = "Unauthorized.";
+          }
+        } else {
+          // user uuid not already in database so go ahead and register it
+          const addResult = await store(presenterUuid);
+          set(res, req.user.nickname, presenterUuid, maxCookieAge); // set new cookie
+          res.locals.statusCode = 201;
+          res.locals.resultMsg = "Authorized.";
         }
+      } else {
+        console.log(
+          "cookie-setter detected missing property see following message(s)..."
+        );
+        console.log("nickname:", user.nickname);
+        console.log("email:", user.email);
+        console.log("email verified:", user.email_verified);
+        res.locals.statusCode = 403;
+        res.locals.resultMsg = "Requires Email Verification.";
       }
     }
   } catch (error) {
-    console.error("cookie-setter catch block error:", error);
-    res.status(500);
-    res.locals.cookieResult = false;
+    console.log("cookie-setter threw", error.message);
+    res.locals.statusCode = 500;
+    res.locals.resultMsg = "Error.";
   }
+
+  next();
+}
+
+function set(res, username, presenterUuid, maxCookieAge) {
+  res.cookie("username", username, {
+    maxAge: maxCookieAge,
+    sameSite: "Strict",
+  });
+  console.log("cookie-setter username cookie set", username);
+
+  res.cookie("useruuid", presenterUuid, {
+    maxAge: maxCookieAge,
+    sameSite: "Strict",
+  });
+  console.log("cookie-setter presenter uuid cookie set", presenterUuid);
 }
 
 module.exports = cookieSetter;

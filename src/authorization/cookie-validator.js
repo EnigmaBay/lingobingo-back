@@ -1,6 +1,5 @@
-const Presenter = require("../models/presenterModel");
-
 async function validateCookies(req, res, next) {
+  const { validateInputs } = require("../utils/validate-inputs");
   res.locals.cookieResult = "Unauthorized";
 
   const cookiesDefined = validateInputs(
@@ -8,15 +7,15 @@ async function validateCookies(req, res, next) {
     req.cookies["username"]
   );
 
-  console.log("cookie-validator cookiesDefined", cookiesDefined);
-
   try {
     if (cookiesDefined) {
+      console.log("cookie-validator cookiesDefined was true.");
       const username = req.cookies["username"];
-      const presenter = await validatePresenter(req.cookies["useruuid"]);
+      const { validate } = require("../utils/presenter-utils");
+      const presenter = await validate(req.cookies["useruuid"]);
 
-      if (presenter.uuid === req.cookies["useruuid"]) {
-        const presenterUuid = presenter.uuid;
+      if (presenter["uuid"] === req.cookies["useruuid"]) {
+        const presenterUuid = presenter["uuid"];
 
         res.cookie("username", username, {
           maxAge: process.env.MAX_COOKIE_AGE,
@@ -34,50 +33,23 @@ async function validateCookies(req, res, next) {
         console.log("cookie-validator set authorized, now returning.");
       } else {
         res.locals.cookieResult = "Unauthorized";
+        console.log("Cookie Validator: Invalid cookies in request.");
+        res.status(401);
+        next("Invalid cookies in request.");
       }
+    } else {
+      // res.locals.cookieResult = 'Unauthorized';
+      console.log("Cookie Validator: Unrecognized cookies in request.");
+      res.status(401);
+      next("Unrecognized cookies in request.");
     }
   } catch (err) {
     console.log("cookie-validator threw", err.message);
+    res.locals.cookieResult = "Unauthorized";
+    res.status(500);
+    next("err.message");
   }
   next();
-}
-
-function validateInputs(useruuid, username) {
-  console.log("cookie-validator validateInputs received useruuid, username");
-
-  if (useruuid === undefined) {
-    return false;
-  }
-
-  const uuidMatches = [...useruuid.matchAll(/([g-zG-Z])/g)];
-
-  if (uuidMatches.length > 0) {
-    return false;
-  }
-
-  if (useruuid.split("").length < 30) {
-    return false;
-  }
-
-  if (username === undefined) {
-    return false;
-  }
-
-  const usernameMatches = [...username.matchAll(/([a-zA-Z])/g)];
-
-  if (usernameMatches.length < 1) {
-    return false;
-  }
-
-  return true;
-}
-
-async function validatePresenter(useruuid) {
-  const result = await Presenter.find({
-    uuid: useruuid,
-    deleted: false,
-  }).exec();
-  return result[0];
 }
 
 module.exports = validateCookies;

@@ -4,6 +4,12 @@ const jwksClient = require("jwks-rsa"); // auth
 
 // function from CodeFellows Code301 cy.2021 curriculum
 function verifyUser(request, response, next) {
+  const authHeader = request.headers.authorization;
+  if (typeof authHeader !== 'string' || authHeader.valueOf().length < 7) {
+    response.status(400).json({message:'Authorization header required.'});
+    return;
+  }
+
   function valid(err, user) {
     request.user = user;
     next();
@@ -11,12 +17,11 @@ function verifyUser(request, response, next) {
 
   try {
     const token = request.headers.authorization.split(" ")[1];
+    console.log('authorize parsed token now calling jwt.verify');
     jwt.verify(token, getKey, {}, valid);
-    response.locals.authenticated = true;
   } catch (error) {
     console.error(error);
-    response.locals.authenticated = false;
-    response.status(400).json({ message: "Invalid authorization header." });
+    next('Not Authorized'); // by the book
   }
 }
 
