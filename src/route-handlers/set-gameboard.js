@@ -54,10 +54,10 @@ async function setGameboard(req, res, next) {
     existingPresenter.updated = timeStamp;
     await existingPresenter.save();
 
-    const hostname = req.hostname;
+    const originHostName = req.get('origin');
     // const port = process.env.PORT;
     // const getGameboardUri = `https://${hostname}:${port}/api/v1/gameboard/${gameboardId}`;
-    const getGameboardUri = `${req.protocol}://${hostname}/play/${gameboardId}`;
+    const getGameboardUri = `https://${originHostName}/play/${gameboardId}`;
     console.log('setGameboard will return this to the caller', getGameboardUri);
 
     res.locals.statusCode = 201;
