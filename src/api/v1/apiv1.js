@@ -171,8 +171,10 @@ router.get('/gameboard/:id', getGameboard, async (req, res) => {
 });
 
 router.post(
-  '/gameboard',
-  cookieValidator,
+  '/gameboard/:category/:payload',
+  checkJwt,
+  decodeAuthParams,
+  checkPresenter,
   createGameboard,
   setGameboard,
   async (req, res) => {
