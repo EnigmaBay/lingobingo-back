@@ -1,9 +1,9 @@
-const LingoWord = require("../models/lingowordModel");
-const { checkString } = require("../utils/validate-inputs");
+const LingoWord = require('../models/lingowordModel');
+const { checkString } = require('../utils/validate-inputs');
 
 function getWords(uuid, lingoCategory) {
   console.log(
-    "entered getWords with args uuid, lingoCategory",
+    'entered getWords with args uuid, lingoCategory',
     uuid,
     lingoCategory
   );
@@ -11,15 +11,15 @@ function getWords(uuid, lingoCategory) {
   const owner = checkString(uuid);
   const category = checkString(lingoCategory);
   // todo: fix cache so GET bingoboard will cache regardless of cookies
-  const cache = require("../utils/cache");
+  const cache = require('../utils/cache');
   const maxCacheLifetime = process.env.MAX_CACHE_LIFETIME;
-  const key = uuid + "-category-" + lingoCategory;
+  const key = uuid + '-category-' + lingoCategory;
 
   if (cache[key] && Date.now() - cache[key].timestamp < maxCacheLifetime) {
-    console.log("get-words cache HIT");
+    console.log('get-words cache HIT');
   } else {
-    console.log("get-words cache MISS");
-    const timeStamper = require("../utils/time-stamper");
+    console.log('get-words cache MISS');
+    const timeStamper = require('../utils/time-stamper');
     cache[key] = {};
     cache[key].timestamp = timeStamper();
     cache[key].data = LingoWord.find({
@@ -31,15 +31,16 @@ function getWords(uuid, lingoCategory) {
       .then((response) => {
         const wordList = [];
         response.forEach((item) => {
-          wordList.push(item["word"]);
+          wordList.push(item['word']);
         });
         return wordList;
       })
       .catch((error) => {
-        console.log("error in get-words", error.message);
+        console.log('error in get-words', error.message);
         return [];
       });
   }
+  console.log('getWords cache is now:', cache[key].data);
   return cache[key].data;
 }
 
