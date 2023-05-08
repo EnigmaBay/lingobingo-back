@@ -1,11 +1,11 @@
-const { checkString } = require("../utils/validate-inputs");
-const { generateUuid } = require("../utils/presenter-utils");
-const getWords = require("./get-words");
+const { checkString } = require('../utils/validate-inputs');
+const { generateUuid } = require('../utils/presenter-utils');
+const getWords = require('./get-words');
 
 async function createGameboard(req, res, next) {
   // validate inputs
-  const ownerUuid = req.cookies["useruuid"];
-  const category = req.body.category;
+  const ownerUuid = res.locals.presenterUuid;
+  const category = req.params.category;
 
   // generate a gameboardUuid
   const presenterUuid = checkString(ownerUuid);
@@ -19,11 +19,11 @@ async function createGameboard(req, res, next) {
     if (words.length < 24) {
       // because we are in middleware and 24 words or more is absolute
       // requirement throw an appropriate error message here.
-      throw new Error("create-gameboard: Not enough words in category.");
+      throw new Error('create-gameboard: Not enough words in category.');
     }
 
     // find existing
-    const GameBoard = require("../models/bingoboardModel");
+    const GameBoard = require('../models/bingoboardModel');
     const foundGameboard = await GameBoard.findOne({
       owner: ownerUuid,
       category: category,
@@ -31,7 +31,7 @@ async function createGameboard(req, res, next) {
 
     if (!foundGameboard) {
       console.log(
-        "create-gameboard did not find an existing gameboard in the db."
+        'create-gameboard did not find an existing gameboard in the db.'
       );
       const concatString = `${presenterUuid}${cat}`;
       gameboardUuid = await generateUuid(concatString);
@@ -46,19 +46,19 @@ async function createGameboard(req, res, next) {
       // A gameboard already exists
       // timestamp and force isDeleted flag to false
       console.log(
-        "create-gameboard: gameboard already exists. Updating flag and timestamp."
+        'create-gameboard: gameboard already exists. Updating flag and timestamp.'
       );
-      const timeStamper = require("../utils/time-stamper");
+      const timeStamper = require('../utils/time-stamper');
       const timeStamp = timeStamper();
-      foundGameboard["isDeleted"] = false;
-      foundGameboard["updated"] = timeStamp;
+      foundGameboard['isDeleted'] = false;
+      foundGameboard['updated'] = timeStamp;
       await foundGameboard.save();
-      gameboardUuid = foundGameboard["uuid"];
+      gameboardUuid = foundGameboard['uuid'];
     }
   } catch (error) {
     // catch error message and set status and message then let
     // error handler do the rest.
-    console.log("create-gameboard threw error:", error.message);
+    console.log('create-gameboard threw error:', error.message);
     res.locals.statusCode = 400;
     res.locals.resultMsg = error.message;
     next(error);
