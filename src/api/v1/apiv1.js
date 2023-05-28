@@ -1,154 +1,194 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const mongoose = require("mongoose");
-const authorize = require("../../authorization/authorize");
-const cookieSetter = require("../../authorization/cookie-setter");
-const cookieValidator = require("../../authorization/cookie-validator");
-const getGameboard = require("../../route-handlers/get-gameboard");
-const createGameboard = require("../../route-handlers/create-gameboard");
-const setGameboard = require("../../route-handlers/set-gameboard.js");
-const deleteGameboard = require("../../route-handlers/delete-gameboard");
+const mongoose = require('mongoose');
+const cookieValidator = require('../../authorization/cookie-validator');
+const getGameboard = require('../../route-handlers/get-gameboard');
+const createGameboard = require('../../route-handlers/create-gameboard');
+const setGameboard = require('../../route-handlers/set-gameboard.js');
+const deleteGameboard = require('../../route-handlers/delete-gameboard');
+const { auth } = require('express-oauth2-jwt-bearer');
+const decodeAuthParams = require('../../authorization/decode-auth-params');
+const checkPresenter = require('../../authorization/check-presenter');
 
 // maintain strictQuery behavior in Mongoose 7 (https://mongoosejs.com/docs/guide.html#strictQuery)
-mongoose.set("strictQuery", true);
+mongoose.set('strictQuery', true);
 
 mongoose.connect(process.env.MONGO_CONN_STRING);
 const db = mongoose.connection;
 
-db.on("error", console.error.bind(console, "connection error:"));
-db.once("open", function () {
-  console.log("Mongoose is connected.");
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function () {
+  console.log('Mongoose is connected.');
 });
 
-router.get("/authorize", authorize, cookieSetter, async (req, res, next) => {
-  const statusCode = res.locals.statusCode;
-  const resultMsg = res.locals.resultMsg;
-  res.status(statusCode).json({ message: resultMsg });
+const checkJwt = auth({
+  audience: process.env.AUTH0_AUDIENCE,
+  issuerBaseURL: process.env.AUTH0_ISSUER_BASEURL,
 });
 
-router.get("/words/:category", cookieValidator, async (req, res, next) => {
-  console.log("GET words/:category params.id", req.params.category);
-  const category = req.params.category;
-
-  if (res.locals.cookieResult !== "Authorized") {
-    res.status(401).json({ message: "Unauthorized" });
+router.get(
+  '/authorize/:payload',
+  checkJwt,
+  decodeAuthParams,
+  checkPresenter,
+  (req, res, next) => {
+    res.status(200).json({ message: 'Authorized.' });
   }
+);
 
-  if (category.length === 0) {
-    const msg = res.locals.cookieResult;
-    res.status(400).json({ message: "Missing category" });
+router.get(
+  '/words/:category/:payload',
+  checkJwt,
+  decodeAuthParams,
+  checkPresenter,
+  async (req, res) => {
+    console.log(
+      'GET words/:category/:payload',
+      req.params.category,
+      req.params.payload
+    );
+    const category = req.params.category;
+    // const payload = req.params.payload;
+
+    if (category.length === 0) {
+      res.status(400).json({ message: 'Missing category' });
+    } else {
+      const getWords = require('../../route-handlers/get-words');
+      const cat = category.trim();
+      const uuid = res.locals.presenterUuid;
+      const wordList = await getWords(uuid, cat);
+      res.status(200).json({ wordList });
+    }
   }
+);
 
-  if (res.locals.cookieResult === "Authorized" && category.length >= 1) {
-    const getWords = require("../../route-handlers/get-words");
-    const cat = category.trim();
-    const wordList = await getWords(req.cookies["useruuid"], cat);
-    res.status(200).json(wordList);
+router.post(
+  '/word/:payload',
+  checkJwt,
+  decodeAuthParams,
+  checkPresenter,
+  async (req, res, next) => {
+    const { category, word } = req.body;
+    console.log('POST word body', req.body);
+
+    if (!category || !word) {
+      res.status(400).json({ message: 'Missing body' });
+    }
+    res.locals.word = word;
+    res.locals.category = category;
+    res.locals.newWord = word;
+    const addWord = require('../../route-handlers/updadd-word');
+    await addWord(req, res, next);
+    const addWordResponse = res.locals.newWord;
+    res.status(res.locals.statusCode).json(addWordResponse);
   }
-});
+);
 
-router.post("/word", cookieValidator, async (req, res, next) => {
-  const { category, word } = req.body;
-  console.log("POST word body", category, word);
-
-  if (res.locals.cookieResult !== "Authorized") {
-    res.status(401).json({ message: "Unauthorized" });
+router.post(
+  '/words/:payload',
+  checkJwt,
+  decodeAuthParams,
+  checkPresenter,
+  async (req, res, next) => {
+    console.log('POST words body', req.body);
+    const addBulkWords = require('../../route-handlers/add-bulk-words');
+    addBulkWords(req, res, next)
+      .then((results) => {
+        console.log('insertMany results count:', results.length);
+        res.status(201).json('succeeded');
+      })
+      .catch((err) => {
+        console.log('insertMany error:', err);
+        res.locals.statusCode = 400;
+        next(err);
+      });
   }
+);
 
-  if (!category || !word) {
-    res.status(400).json({ message: "Missing body" });
+router.get(
+  '/categories/:payload',
+  checkJwt,
+  decodeAuthParams,
+  checkPresenter,
+  async (req, res, next) => {
+    const getCategories = require('../../route-handlers/get-categories');
+    const result = await getCategories(req, res);
+    console.log(
+      'categories: getCategories returned result, result.length',
+      result,
+      result.length
+    );
+    const resultMsg = result;
+    const statusCode = (result.length > 0 && 200) || 404;
+    res.status(statusCode).json(resultMsg);
   }
+);
 
-  if (res.locals.cookieResult === "Authorized" && category && word) {
-    const addWord = require("../../route-handlers/add-new-word");
-    const result = await addWord(req.cookies["useruuid"], category, word);
-    res.status(201).json({ message: result });
-  }
-});
-
-router.get("/categories", cookieValidator, async (req, res, next) => {
-  const getCategories = require("../../route-handlers/get-categories");
-  const result = await getCategories(req, res, next);
-  console.log('categories: getCategories returned result, result.length',result, result.length);
-  const resultMsg = result;
-  const statusCode = result.length > 0 && 200 || 404;
-  res.status(statusCode).json(resultMsg);
-});
-
-router.patch("/word", cookieValidator, async (req, res, next) => {
-  console.log("PATCH Word for user", req.cookies["useruuid"]);
-
-  if (res.locals.cookieResult !== "Authorized") {
-    res.status(401).json({ message: "Unauthorized" });
-  }
-
+router.patch('/word', cookieValidator, async (req, res, next) => {
   const { category, word, newWord } = req.body;
-  console.log("PATCH Word category, word, newWord", category, word, newWord);
+  console.log('PATCH Word for user: word, new word =>', word, newWord);
 
   if (!category || !word || !newWord) {
-    res.status(400).json({ message: "Missing body" });
-  }
-
-  if (res.locals.cookieResult === "Authorized") {
-    const updateWord = require("../../route-handlers/update-word");
-    const result = await updateWord(req, res, category, word, newWord);
-    if (res.locals.statusCode && res.locals.resultMsg) {
-      const statusCode = res.locals.statusCode;
-      const resultMsg = res.locals.resultMsg;
-      res.status(statusCode).json(resultMsg);
-    } else {
-      res.status(200).json(result);
-    }
+    res.status(400).json({ message: 'Missing body' });
   } else {
-    console.log("An error occurred in PATCH /word");
-    res.status(500);
+    res.locals.word = word;
+    res.locals.category = category;
+    res.locals.newWord = newWord;
+    const addWord = require('../../route-handlers/updadd-word');
+    await addWord(req, res, next);
+    res
+      .status(res.locals.statusCode)
+      .json({ 'New word': `${res.locals.newWord}` });
   }
 });
 
-router.delete("/word", cookieValidator, async (req, res, next) => {
-  console.log("DELETE Word for user", req.cookies["useruuid"]);
+router.delete('/word', cookieValidator, async (req, res, next) => {
   const { category, word } = req.body;
-  console.log("DELETE Word category, word", category, word);
 
   if (!category || !word) {
-    res.status(400).json({ message: "Missing body" });
+    res.status(400).json({ message: 'Missing body' });
   } else {
-    const removeWord = require("../../route-handlers/remove-word");
-    const result = await removeWord(req, res, category, word);
-
-    if (res.locals.statusCode && res.locals.resultMsg) {
-      const statusCode = res.locals.statusCode;
-      const resultMsg = res.locals.resultMsg;
-      res.status(statusCode).json(resultMsg);
-    } else {
-      res.status(200).json(result);
-    }
+    res.locals.category = category;
+    res.locals.word = word;
+    const removeWord = require('../../route-handlers/remove-word');
+    removeWord(req, res, next)
+      .then(() =>
+        res
+          .status(res.locals.statusCode)
+          .json({ message: `${res.locals.resultMsg}` })
+      )
+      .catch((error) => {
+        console.log('delete word route catch error:', error);
+        res.status(400).json({ message: 'Unable to delete word.' });
+      });
   }
 });
 
-router.get("/gameboard/:id", getGameboard, async (req, res, next) => {
+router.get('/gameboard/:id', getGameboard, async (req, res) => {
   const statusCode = res.locals.statusCode;
   const resultMsg = res.locals.resultMsg;
   res.status(statusCode).json(resultMsg);
 });
 
 router.post(
-  "/gameboard",
-  cookieValidator,
+  '/gameboard/:category/:payload',
+  checkJwt,
+  decodeAuthParams,
+  checkPresenter,
   createGameboard,
   setGameboard,
-  async (req, res, next) => {
+  async (req, res) => {
     const statusCode = res.locals.statusCode;
     const resultMsg = res.locals.resultMsg;
-    res.status(statusCode).json({ message: resultMsg });
+    res.status(statusCode).json({ gameboardUri: resultMsg });
   }
 );
 
 router.delete(
-  "/gameboard",
+  '/gameboard',
   cookieValidator,
   deleteGameboard,
-  async (req, res, next) => {
+  async (req, res) => {
     const statusCode = res.locals.statusCode;
     const resultMsg = res.locals.resultMsg;
     res.status(statusCode).json({ message: resultMsg });

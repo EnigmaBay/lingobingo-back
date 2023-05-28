@@ -1,12 +1,12 @@
-const { checkString } = require("../utils/validate-inputs");
+const { checkString } = require('../utils/validate-inputs');
 
 // attaches a gameboard ID to a presenter and returns the gameboard URI
 async function setGameboard(req, res, next) {
-  const presenterUuid = checkString(req.cookies["useruuid"]);
+  const presenterUuid = checkString(res.locals.presenterUuid);
   const gameboardUuid = checkString(res.locals.gameboardUuid);
 
   try {
-    const Presenter = require("../models/presenterModel");
+    const Presenter = require('../models/presenterModel');
     const existingPresenter = await Presenter.findOne({
       uuid: presenterUuid,
       deleted: false,
@@ -14,13 +14,13 @@ async function setGameboard(req, res, next) {
 
     if (!existingPresenter) {
       res.locals.statusCode = 500;
-      res.locals.resultMsg = "Unable to validate Presenter.";
+      res.locals.resultMsg = 'Unable to validate Presenter.';
       return;
     } else {
-      console.log("set-gameboard found existingPresenter:", existingPresenter["uuid"]);
+      console.log('set-gameboard found existingPresenter.');
     }
 
-    const BingoBoard = require("../models/bingoboardModel");
+    const BingoBoard = require('../models/bingoboardModel');
     const existingGameboard = await BingoBoard.findOne({
       owner: presenterUuid,
       uuid: gameboardUuid,
@@ -29,10 +29,13 @@ async function setGameboard(req, res, next) {
 
     if (!existingGameboard) {
       res.locals.statusCode = 500;
-      res.locals.resultMsg = "Unable to retreive expected Bingoboard.";
+      res.locals.resultMsg = 'Unable to retreive expected Bingoboard.';
       return;
     } else {
-      console.log("set-gameboard found existingGameboard:", existingGameboard["uuid"]);
+      console.log(
+        'set-gameboard found existingGameboard:',
+        existingGameboard['uuid']
+      );
     }
 
     const gameboardId = existingGameboard.uuid;
@@ -46,28 +49,29 @@ async function setGameboard(req, res, next) {
     const uniqueBingoboards = Array.from(gameboardSet);
     existingPresenter.bingoboards = uniqueBingoboards;
 
-    const timeStamper = require("../utils/time-stamper");
+    const timeStamper = require('../utils/time-stamper');
     const timeStamp = timeStamper();
     existingPresenter.updated = timeStamp;
-    const updatedPresenter = await existingPresenter.save();
+    await existingPresenter.save();
 
-    const hostname = req.hostname;
-    const port = process.env.PORT;
-    const getGameboardUri = `https://${hostname}:${port}/api/v1/gameboard/${gameboardId}`;
+    const originHostName = req.get('origin');
+    // const port = process.env.PORT;
+    // const getGameboardUri = `https://${hostname}:${port}/api/v1/gameboard/${gameboardId}`;
+    const getGameboardUri = `${originHostName}/play/${gameboardId}`;
+    console.log('setGameboard will return this to the caller', getGameboardUri);
 
     res.locals.statusCode = 201;
     res.locals.resultMsg = getGameboardUri;
     next();
   } catch (error) {
     console.error(
-      "setting gameboard to presenter profile failed.",
+      'setting gameboard to presenter profile failed.',
       error.message
     );
     res.locals.statusCode = 500;
-    res.locals.resultMsg = "setting gameboard to presenter profile failed.";
+    res.locals.resultMsg = 'setting gameboard to presenter profile failed.';
     next(error);
   }
-  // return;
 }
 
 module.exports = setGameboard;
