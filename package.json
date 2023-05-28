@@ -1,6 +1,7 @@
 {
   "name": "lingobingo-back",
   "version": "1.0.0",
+  "type": "commonjs",
   "description": "API Server for LingoBingo JS React App",
   "main": "src/server.js",
   "scripts": {
@@ -33,6 +34,8 @@
   },
   "devDependencies": {
     "dotenv": "^16.0.3",
+    "eslint": "^8.35.0",
+    "eslint-plugin-node": "^11.1.0",
     "nodemon": "^2.0.20"
   }
 }

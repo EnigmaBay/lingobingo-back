@@ -33,12 +33,12 @@ async function getGameboard(req, res, next) {
         return words;
       })
       .catch((error) => {
-        console.log("get-gameboard returning not found!");
+        console.log("get-gameboard returning error:", error);
         res.locals.statusCode = 404;
         return { message: "Ask your presenter for a new URL." };
       });
   }
-  // console.log("cache[key].data content:", cache[key].data);
+
   res.locals.resultMsg = cache[key].data;
   next();
 }

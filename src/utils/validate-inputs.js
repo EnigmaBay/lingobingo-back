@@ -12,8 +12,29 @@ function checkString(item) {
   }
 }
 
+function validateEncodedArg(b64urlInput) {
+  console.log("validate-inputs validateEncodedArg received");
+  if (!checkString(b64urlInput)) {
+    return false;
+  }
+
+  const buff = Buffer.from(b64urlInput, "base64url");
+  const decoded = buff.toString("utf8");
+
+  if (decoded.length < 2) {
+    return false;
+  }
+  const matches = [...decoded.matchAll(/\s/g)];
+
+  if (matches.length === decoded.length) {
+    return false;
+  }
+
+  return true;
+}
+
 function validateInputs(useruuid, username) {
-  console.log("cookie-validator validateInputs received useruuid, username");
+  console.log("validateInputs received useruuid, username.");
 
   if (useruuid === undefined) {
     return false;
@@ -42,4 +63,4 @@ function validateInputs(useruuid, username) {
   return true;
 }
 
-module.exports = { checkString, validateInputs };
+module.exports = { checkString, validateInputs, validateEncodedArg };

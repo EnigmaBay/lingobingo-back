@@ -1,17 +1,17 @@
 const express = require("express");
 const app = express();
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
 
+// eslint-disable-next-line node/no-unpublished-require
 require("dotenv").config();
 const PORT = process.env.PORT || 3002;
 
 app.use(express.json());
 app.use(cookieParser());
-app.disable("x-powered-by");
+app.use(cors());
 
-app.get("/", (req, res) => {
-  res.status(200).json({ message: "ehlo werld!" });
-});
+app.disable("x-powered-by");
 
 const apiv1 = require("./api/v1/apiv1");
 app.use("/api/v1", apiv1);
@@ -24,7 +24,7 @@ app.all("*", (req, res) => {
 
 // error handler middleware defined after last app.use and route calls
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error("custom error handler received err:", err);
 
   if (res.headersSent) {
     console.log(
@@ -32,13 +32,20 @@ app.use((err, req, res, next) => {
     );
     return next(err);
   } else {
-    let errMsg;
     if (!err) {
-      errMsg = "Custom error handler return.";
+      console.log("Custom error handler return.");
     } else {
-      errMsg = err.message;
+      console.log(err.message);
     }
-    res.status(400).json({ message: errMsg });
+
+    let statusCode = 400;
+
+    if (res.locals.statusCode !== undefined) {
+      statusCode = res.locals.statusCode;
+    }
+
+    console.log("default error handler called by next ==>>");
+    res.status(statusCode).json({ message: err });
   }
 });
 
