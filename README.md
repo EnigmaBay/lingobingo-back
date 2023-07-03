@@ -19,33 +19,35 @@ In everyday terms:
 
 This API Server is in development.
 
+![LingoBingo API: Azure-Deploy](https://github.com/enigmabay/lingobingo-back/actions/workflows/build-deploy-azure.yaml/badge.svg?branch=azure-deploy)
+
 ## Dependencies
 
-- [X] NodeJS
-- [X] ExpressJS
-- [X] Java Web Tokens and Aync Key Sets
-- [X] Mongoose (MongoDB Client) v6.8+
-- [X] Cookie-parser
-- [X] CORS (configure for your specific environment)
-- [X] Auth0: JWT Bearer, JsonWebToken, and JWKS-RSA SDKs
-- [X] Dev: DotEnv for importing local environment variables
-- [X] NodeMon: Automate restarting service during development
+- [x] NodeJS
+- [x] ExpressJS
+- [x] Java Web Tokens and Aync Key Sets
+- [x] Mongoose (MongoDB Client) v6.8+
+- [x] Cookie-parser
+- [x] CORS (configure for your specific environment)
+- [x] Auth0: JWT Bearer, JsonWebToken, and JWKS-RSA SDKs
+- [x] Dev: DotEnv for importing local environment variables
+- [x] NodeMon: Automate restarting service during development
 
 ## Implemented Technologies and Patterns
 
-- [X] REST-based server.
-- [X] CRUD functionality (Create, Read, Update, and Delete).
-- [X] Async/Await and Promises.
-- [X] Cookies.
-- [X] JWT Keysets leveraged for authorization.
-- [X] Buffer for generating UUIDs.
-- [X] Various ExpressJS features including middleware, Router, and error handler.
-- [X] Caching of GET method calls.
-- [X] Presenter can edit existing words in their own categories.
-- [X] Presenter can remove existing words in their own categories.
-- [X] Presenter can generate a new gameboard.
-- [X] Presenter can remove existing gameboard.
-- [X] Authorization *not* required to get a "Gameboard" given a UUID.
+- [x] REST-based server.
+- [x] CRUD functionality (Create, Read, Update, and Delete).
+- [x] Async/Await and Promises.
+- [x] Cookies.
+- [x] JWT Keysets leveraged for authorization.
+- [x] Buffer for generating UUIDs.
+- [x] Various ExpressJS features including middleware, Router, and error handler.
+- [x] Caching of GET method calls.
+- [x] Presenter can edit existing words in their own categories.
+- [x] Presenter can remove existing words in their own categories.
+- [x] Presenter can generate a new gameboard.
+- [x] Presenter can remove existing gameboard.
+- [x] Authorization _not_ required to get a "Gameboard" given a UUID.
 
 ## Planned Work
 
@@ -60,7 +62,7 @@ Developer: [Ryan Schafer](https://github.com/schaferyan).
 
 ## References and Resources
 
-*Note*: Specific code references have been made in-line with source code.
+_Note_: Specific code references have been made in-line with source code.
 
 - [Code Fellows Seattle](https://www.codefellows.com)
 - [MDN](https://developer.mozilla.org/)
